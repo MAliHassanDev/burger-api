@@ -82,3 +82,5 @@ export class Burger {
 
 // Export types
 export type { ServerOptions, RequestHandler } from "./types/index.d.ts";
+
+export { setDir } from "./utils/index";

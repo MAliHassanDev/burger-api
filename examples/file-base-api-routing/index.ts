@@ -1,11 +1,10 @@
 // Import burger
-import { Burger } from "../../src/index";
-import * as path from "path";
+import { Burger, setDir } from "../../src/index";
 
 // Create a new burger instance
 const burger = new Burger({
   port: 4000,
-  apiDir: path.join(__dirname, "api"),
+  apiDir: setDir(__dirname, "api"),
 });
 
 // Start the server

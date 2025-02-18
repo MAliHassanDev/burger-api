@@ -25,8 +25,6 @@ export class Router {
     dir: string,
     basePath: string = ""
   ): Promise<void> {
- console.log(`Scanning directory: ${dir}`);
- 
     const entries = readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
       const entryPath = path.join(dir, entry.name);
