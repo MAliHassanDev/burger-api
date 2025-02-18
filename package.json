@@ -1,0 +1,23 @@
+{
+  "name": "burger-api",
+  "version": "0.0.1",
+  "author": "Isfhan Ahmed",
+  "type": "module",
+  "module": "dist/index.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "bun test",
+    "dev": "bun run examples/basic-demo.ts"
+  },
+  "dependencies": {
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
