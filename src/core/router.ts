@@ -1,5 +1,10 @@
 import { readdirSync } from "fs";
 import * as path from "path";
+
+// Import utils
+import { cleanPrefix } from "@/utils/index.ts";
+
+// Import types
 import type {
   RequestHandler,
   Middleware,
@@ -12,8 +17,9 @@ export class Router {
   /**
    * Constructor for the Router class.
    * @param routesDir The directory path to find route modules.
+   * @param prefix Optional prefix to prepend to all routes (e.g., "api" to create "/api/..." routes).
    */
-  constructor(private routesDir: string) {}
+  constructor(private routesDir: string, private prefix: string = "") {}
 
   /**
    * Loads route modules from the specified directory and
@@ -75,8 +81,9 @@ export class Router {
    *
    * Removes the trailing "route.ts" portion, skips empty segments or segments named "index",
    * skips segments enclosed in parentheses, converts dynamic segments (e.g., [id]) to :id,
-   * and joins the remaining segments with '/' and ensures the path starts with '/'.
-   * If the resulting path is not the root and has a trailing slash, it is removed.
+   * and joins the remaining segments with '/'.
+   * Finally, prepends the optional prefix (e.g., "/api").
+   *
    * @param filePath the file path to convert
    * @returns the converted route path
    */
@@ -107,6 +114,15 @@ export class Router {
 
     // Join the segments with '/' and ensure the path starts with '/'
     let route = "/" + resultSegments.join("/");
+
+    // Prepend the prefix if provided
+    if (this.prefix) {
+      // Remove any leading/trailing slashes from the prefix
+      const cleanPrefixStr = cleanPrefix(this.prefix);
+      // Prepend the prefix (e.g., "/api") to the route
+      route = "/" + cleanPrefixStr + route;
+    }
+
     // Remove trailing slash if it's not the root
     if (route !== "/" && route.endsWith("/")) {
       route = route.slice(0, -1);

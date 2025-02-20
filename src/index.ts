@@ -22,7 +22,7 @@ export class Burger {
   constructor(private options: ServerOptions) {
     this.server = new Server(options);
     if (options.apiDir) {
-      this.router = new Router(options.apiDir);
+      this.router = new Router(options.apiDir, "api");
     }
   }
 
