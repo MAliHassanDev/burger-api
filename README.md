@@ -33,55 +33,56 @@ burger-api/
 
 ### **Phase 1: Core Essentials**
 
-- [x] **Bun-Native HTTP Server**  
-      Use Bun’s native APIs for a high-performance HTTP server.
-- [x] **File-Based Routing Engine**
-  - [x] Directory Scanning
-  - [ ] Route Mapping (API & Page Routes)
+- [✔] **Bun-Native HTTP Server**  
+   Use Bun’s native APIs for a high-performance HTTP server.
+- [✔] **File-Based Routing Engine**
+  - [✔] Directory Scanning
+  - [✔] Route Mapping (API Routes)
+  - [ ] Route Mapping (Page Routes)
   - [ ] Differentiation between `route.ts` and `page.ts`
-- [ ] **Request & Response Enhancements**  
-      Extend Bun's native Request/Response with additional helper methods.
+- [✔] **Request & Response Enhancements**  
+   Extend Bun's native Request/Response with additional helper methods.
 - [ ] **Middleware System**
-  - [ ] Global Middleware Support
+  - [] Global Middleware Support
   - [ ] Route-Specific Middleware Support
   - [ ] Middleware Composition
 - [ ] **Zod-Based Schema Validation**  
-      Validate incoming requests using Zod schemas exported from route files.
-- [ ] **Route Handler API**  
-      Support standard HTTP methods (GET, POST, PUT, DELETE, PATCH, HEAD).
+       Validate incoming requests using Zod schemas exported from route files.
+- [✔] **Route Handler API**  
+   Support standard HTTP methods (GET, POST, PUT, DELETE, PATCH, HEAD).
 - [ ] **Automatic OpenAPI Specification Generation**  
-      Generate up-to-date API documentation from your routes and schemas.
+       Generate up-to-date API documentation from your routes and schemas.
 
 ### **Phase 2: Developer Experience & Automation**
 
 - [ ] **CLI Tooling**  
-      Develop a CLI (`burger-api-cli`) for scaffolding projects and managing configurations.
+       Develop a CLI (`burger-api-cli`) for scaffolding projects and managing configurations.
 - [ ] **Hot Reloading/Watch Mode**  
-      Implement file watching for a seamless development experience.
+       Implement file watching for a seamless development experience.
 - [ ] **Enhanced Error Handling**  
-      Build a robust, centralized error-handling mechanism.
+       Build a robust, centralized error-handling mechanism.
 
 ### **Phase 3: Advanced Features & Optimizations**
 
 - [ ] **File Upload Handling**  
-      Leverage Bun's native file handling for efficient file uploads.
+       Leverage Bun's native file handling for efficient file uploads.
 - [ ] **Performance Optimizations**  
-      Further optimize routing, middleware, and processing overhead.
+       Further optimize routing, middleware, and processing overhead.
 - [ ] **Dynamic Route Grouping for Pages**  
-      Support route grouping (e.g., groupName) for better organization.
+       Support route grouping (e.g., groupName) for better organization.
 - [ ] **Extensible Plugin System (Future)**  
-      Architect a plugin system for additional features like logging, caching, and analytics.
+       Architect a plugin system for additional features like logging, caching, and analytics.
 
 ### **Phase 4: Ecosystem & Extensibility**
 
 - [ ] **Prebuilt Authentication Middleware**  
-      Offer built-in strategies (JWT, OAuth, API keys) out-of-the-box.
+       Offer built-in strategies (JWT, OAuth, API keys) out-of-the-box.
 - [ ] **Testing Utilities & Documentation Examples**  
-      Provide comprehensive tools and examples for testing and learning.
+       Provide comprehensive tools and examples for testing and learning.
 - [ ] **Optional ORM/Database Integration**  
-      Explore integrations with lightweight ORMs for data persistence.
+       Explore integrations with lightweight ORMs for data persistence.
 - [ ] **Customizable Logging & Monitoring**  
-      Build configurable options for logging and production monitoring.
+       Build configurable options for logging and production monitoring.
 
 ## 🛠️ How Developers Will Use It
 

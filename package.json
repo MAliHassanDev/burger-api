@@ -1,6 +1,6 @@
 {
   "name": "burger-api",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "author": "Isfhan Ahmed",
   "type": "module",
   "module": "dist/index.js",
@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "test": "bun test",
-    "dev": "bun run examples/basic-demo.ts"
+    "dev": "bun run examples/native-server/index.ts"
   },
   "dependencies": {
     "zod": "^3.24.2",
