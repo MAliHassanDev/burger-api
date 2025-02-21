@@ -43,9 +43,9 @@ burger-api/
 - [✔] **Request & Response Enhancements**  
    Extend Bun's native Request/Response with additional helper methods.
 - [ ] **Middleware System**
-  - [] Global Middleware Support
+  - [✔] Global Middleware Support
   - [ ] Route-Specific Middleware Support
-  - [ ] Middleware Composition
+  - [✔] Middleware Composition
 - [ ] **Zod-Based Schema Validation**  
        Validate incoming requests using Zod schemas exported from route files.
 - [✔] **Route Handler API**  

@@ -14,6 +14,11 @@ export interface ServerOptions {
    * Page routes are not yet supported, but will be supported in the future.
    */
   pageDir?: string;
+
+  /**
+   * Global middleware to be executed before each request.
+   */
+  globalMiddleware?: Middleware[];
 }
 
 export interface BurgerRequest extends Request {

@@ -10,26 +10,40 @@ import type {
   RequestHandler,
   BurgerRequest,
   BurgerResponse,
+  Middleware,
 } from "./types/index.d.ts";
 
 export class Burger {
   private server: Server;
   private router?: Router;
-  private globalMiddleware: Array<
-    (req: any, next: () => Promise<Response>) => Promise<Response>
-  > = [];
+  private globalMiddleware: Middleware[] = [];
 
+  /**
+   * Constructor for the Burger class.
+   * @param options - The options for the server and router.
+   * The options object should contain the following properties:
+   * - port: The port number to listen on.
+   * - apiDir: The directory path to load API routes from.
+   * - pageDir: The directory path to load page routes from.
+   * - middleware: An array of global middleware functions.
+   */
   constructor(private options: ServerOptions) {
     this.server = new Server(options);
+    // Initialize API router
     if (options.apiDir) {
       this.router = new Router(options.apiDir, "api");
     }
+    // Add global middleware
+    if (options.globalMiddleware) {
+      options.globalMiddleware.forEach((mw) => this.addGlobalMiddleware(mw));
+    }
   }
 
-  // Allow adding global middleware externally
-  addGlobalMiddleware(
-    mw: (req: any, next: () => Promise<Response>) => Promise<Response>
-  ) {
+  /**
+   * Adds a global middleware function to the list of middlewares.
+   * @param mw - The middleware function to add.
+   */
+  addGlobalMiddleware(mw: Middleware) {
     this.globalMiddleware.push(mw);
   }
 
@@ -62,7 +76,7 @@ export class Burger {
         }
 
         // Create a new instance of BurgerResponse for the handler
-        const response = new HttpResponse();
+        const response = new HttpResponse() as unknown as BurgerResponse;
 
         // Build the final handler chain:
         // Start with the route handler accepting (request,response, params)
