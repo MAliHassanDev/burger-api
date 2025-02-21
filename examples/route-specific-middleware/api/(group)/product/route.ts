@@ -9,6 +9,7 @@ export const middleware = [
 ];
 
 export async function GET(req: BurgerRequest, res: BurgerResponse) {
+  console.log("Product GET request");
   const query = req.query;
   return res.json({
     query: query,

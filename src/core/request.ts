@@ -1,20 +1,26 @@
 export class HttpRequest {
   private _request: Request;
+  private _query?: URLSearchParams;
 
   /**
-   * Constructs a new HttpRequest instance.
-   * @param request - The native Request object.
+   * Creates a new HttpRequest object from the given Request object.
+   * @param request - The Request object to wrap.
    */
   constructor(request: Request) {
     this._request = request;
+    this._query = new URL(request.url).searchParams;
   }
 
   /**
-   * Gets the query parameters as a URLSearchParams object.
-   * @returns The query parameters as a URLSearchParams object.
+   * Retrieves the query parameters from the request URL.
+   * Initializes the query parameters if they are not already set.
+   * @returns The URLSearchParams object containing the query parameters.
    */
   get query(): URLSearchParams {
-    return new URL(this._request.url).searchParams;
+    if (!this._query) {
+      this._query = new URL(this._request.url).searchParams;
+    }
+    return this._query;
   }
 
   /**
