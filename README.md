@@ -42,9 +42,9 @@ burger-api/
   - [ ] Differentiation between `route.ts` and `page.ts`
 - [✔] **Request & Response Enhancements**  
    Extend Bun's native Request/Response with additional helper methods.
-- [ ] **Middleware System**
+- [✔] **Middleware System**
   - [✔] Global Middleware Support
-  - [ ] Route-Specific Middleware Support
+  - [✔] Route-Specific Middleware Support
   - [✔] Middleware Composition
 - [ ] **Zod-Based Schema Validation**  
        Validate incoming requests using Zod schemas exported from route files.
