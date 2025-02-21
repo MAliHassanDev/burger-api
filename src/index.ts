@@ -86,7 +86,7 @@ export class Burger {
         if (route.middleware && route.middleware.length > 0) {
           for (const mw of route.middleware.reverse()) {
             const next = finalHandler;
-            finalHandler = async () => mw(request, next);
+            finalHandler = async () => mw(request, response, next);
           }
         }
 
@@ -95,7 +95,7 @@ export class Burger {
           let globalFinal = finalHandler;
           for (const mw of this.globalMiddleware.reverse()) {
             const next = globalFinal;
-            globalFinal = async () => mw(request, next);
+            globalFinal = async () => mw(request, response, next);
           }
           return await globalFinal();
         } else {
