@@ -46,8 +46,8 @@ burger-api/
   - [✔] Global Middleware Support
   - [✔] Route-Specific Middleware Support
   - [✔] Middleware Composition
-- [ ] **Zod-Based Schema Validation**  
-       Validate incoming requests using Zod schemas exported from route files.
+- [✔] **Zod-Based Schema Validation**  
+   Validate incoming requests using Zod schemas exported from route files.
 - [✔] **Route Handler API**  
    Support standard HTTP methods (GET, POST, PUT, DELETE, PATCH, HEAD).
 - [ ] **Automatic OpenAPI Specification Generation**  
