@@ -26,6 +26,7 @@
 
     // Project settings
     "rootDir": ".",
+    "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

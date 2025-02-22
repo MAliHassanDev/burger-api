@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export interface ServerOptions {
   /**
    * The port number to listen on.
@@ -30,6 +32,33 @@ export interface BurgerRequest extends Request {
    * `getAll(key)`, `has(key)`, `keys()`, `values()`, `entries()`, and more.
    */
   query: URLSearchParams;
+
+  /**
+   * Contains URL parameters extracted from the request path.
+   * This property is only present if the request path matches a route
+   * with dynamic parameters.
+   *
+   * For example, if the route is `/users/:id`, and the request path is
+   * `/users/123`, then the `params` property will be `{ id: '123' }`.
+   */
+  params?: Record<string, string>;
+
+  /**
+   * Contains validated data for the request.
+   * This is an optional property that will only be present if
+   * a middleware has validated the request data and attached the
+   * validated data to the request.
+   *
+   * Properties:
+   * - `params`: Validated URL parameters.
+   * - `query`: Validated query string parameters.
+   * - `body`: Validated request body (if JSON).
+   */
+  validated?: {
+    params?: unknown;
+    query?: unknown;
+    body?: unknown;
+  };
 }
 
 export interface BurgerResponse {
@@ -148,7 +177,7 @@ export type Middleware = (
   request: BurgerRequest,
   response: BurgerResponse,
   next: () => Promise<Response>
-) => Promise<Response> ;
+) => Promise<Response>;
 
 export interface RouteDefinition {
   /**
@@ -166,4 +195,28 @@ export interface RouteDefinition {
    * The middleware functions will be run in the order they are specified.
    */
   middleware?: Middleware[];
+
+  /**
+   * An optional route schema to validate the request data against.
+   * This property is set by the user when defining a route.
+   * The schema is used to validate the request data for each HTTP method.
+   * The keys are the HTTP method names (in lowercase) and the values are
+   * the Zod schema objects for that method.
+   */
+  schema?: RouteSchema;
 }
+
+/**
+ * Define a type for the route schema.
+ * For each HTTP method (in lowercase), you can optionally define:
+ * - params: for URL parameters,
+ * - query: for query string parameters,
+ * - body: for the request body.
+ */
+export type RouteSchema = {
+  [method: string]: {
+    params?: z.ZodTypeAny;
+    query?: z.ZodTypeAny;
+    body?: z.ZodTypeAny;
+  };
+};

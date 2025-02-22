@@ -4,6 +4,9 @@ import { Router } from "./core/router";
 import { HttpRequest } from "./core/request";
 import { HttpResponse } from "./core/response";
 
+// Import middleware
+import { createValidationMiddleware } from "./middleware/validator.ts";
+
 // Import types
 import type {
   ServerOptions,
@@ -69,6 +72,11 @@ export class Burger {
         if (!route) {
           return new Response("Not Found", { status: 404 });
         }
+
+        // Add params to the request
+        request.params = params;
+
+        // Get the handler for the current HTTP method
         const method = req.method.toUpperCase();
         const handler = route.handlers[method];
         if (!handler) {
@@ -78,29 +86,37 @@ export class Burger {
         // Create a new instance of BurgerResponse for the handler
         const response = new HttpResponse() as unknown as BurgerResponse;
 
-        // Build the final handler chain:
-        // Start with the route handler accepting (request,response, params)
-        let finalHandler = async () => handler(request, response, params);
+        // Build the middleware composition
 
-        // Wrap route-specific middleware (if any)
+        // 1. Compose the Route-Specific Chain
+        let routeChain = async () => handler(request, response, params);
         if (route.middleware && route.middleware.length > 0) {
-          for (const mw of route.middleware.reverse()) {
+          // Wrap route-specific middleware (in reverse order to preserve order of execution)
+          for (const mw of route.middleware.slice().reverse()) {
+            const next = routeChain;
+            routeChain = async () => mw(request, response, next);
+          }
+        }
+
+        // 2. Insert Validation Middleware (if a schema exists)
+        let composedChain = routeChain;
+        if (route.schema) {
+          const validationMw = createValidationMiddleware(route.schema);
+          composedChain = async () =>
+            validationMw(request, response, routeChain);
+        }
+
+        // 3. Wrap Global Middleware (in reverse order so that the first-added runs first)
+        let finalHandler = composedChain;
+        if (this.globalMiddleware.length > 0) {
+          for (const mw of this.globalMiddleware.slice().reverse()) {
             const next = finalHandler;
             finalHandler = async () => mw(request, response, next);
           }
         }
 
-        // Wrap global middleware in order provided (first to last)
-        if (this.globalMiddleware.length > 0) {
-          let globalFinal = finalHandler;
-          for (const mw of this.globalMiddleware.reverse()) {
-            const next = globalFinal;
-            globalFinal = async () => mw(request, response, next);
-          }
-          return await globalFinal();
-        } else {
-          return await finalHandler();
-        }
+        // Execute the full chain
+        return await finalHandler();
       });
     } else {
       // Fallback to default handler if no router is provided

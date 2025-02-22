@@ -70,6 +70,7 @@ export class Router {
           path: routePath,
           handlers,
           middleware: routeModule.middleware,
+          schema: routeModule.schema,
         };
         this.routes.push(routeDef);
       }

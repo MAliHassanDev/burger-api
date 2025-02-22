@@ -2,7 +2,11 @@ import type { BurgerRequest, BurgerResponse } from "../../../../../../src";
 
 // Route-specific middleware
 export const middleware = [
-  async (req: BurgerRequest, next: () => Promise<Response>) => {
+  async (
+    req: BurgerRequest,
+    res: BurgerResponse,
+    next: () => Promise<Response>
+  ) => {
     console.log("Profile Route-specific middleware executed");
     return await next();
   },
