@@ -5,11 +5,10 @@
       "name": "burger-api",
       "dependencies": {
         "zod": "^3.24.2",
-        "zod-to-json-schema": "^3.24.1",
+        "zod-to-json-schema": "^3.24.2",
       },
       "devDependencies": {
         "@types/bun": "latest",
-        "typescript": "^5.0.0",
       },
       "peerDependencies": {
         "typescript": "^5.0.0",
@@ -31,6 +30,6 @@
 
     "zod": ["zod@3.24.2", "", {}, "sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ=="],
 
-    "zod-to-json-schema": ["zod-to-json-schema@3.24.1", "", { "peerDependencies": { "zod": "^3.24.1" } }, "sha512-3h08nf3Vw3Wl3PK+q3ow/lIil81IT2Oa7YpQyUUDsEWbXveMesdfK1xBd2RhCkynwZndAxixji/7SYJJowr62w=="],
+    "zod-to-json-schema": ["zod-to-json-schema@3.24.2", "", { "peerDependencies": { "zod": "^3.24.1" } }, "sha512-pNUqrcSxuuB3/+jBbU8qKUbTbDqYUaG1vf5cXFjbhGgoUuA1amO/y4Q8lzfOhHU8HNPK6VFJ18lBDKj3OHyDsg=="],
   }
 }

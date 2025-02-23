@@ -21,6 +21,24 @@ export interface ServerOptions {
    * Global middleware to be executed before each request.
    */
   globalMiddleware?: Middleware[];
+
+  /**
+   * The title of the API. This is an optional property that can be used
+   * to specify a custom title for the API documentation.
+   */
+  title?: string;
+
+  /**
+   * The description of the API. This is an optional property that can be used
+   * to provide a brief overview of the API.
+   */
+  description?: string;
+
+  /**
+   * The version of the API. This is an optional property that can be used
+   * to specify the version of the API.
+   */
+  version?: string;
 }
 
 export interface BurgerRequest extends Request {
@@ -204,6 +222,19 @@ export interface RouteDefinition {
    * the Zod schema objects for that method.
    */
   schema?: RouteSchema;
+
+  /**
+   * An optional OpenAPI metadata object for the route.
+   * This object defines the OpenAPI specification details for each HTTP method.
+   * The keys are the HTTP method names (e.g. "get", "post") and the values are
+   * objects containing OpenAPI metadata, such as summary and description.
+   */
+  openapi?: {
+    [method: string]: {
+      summary?: string;
+      description?: string;
+    };
+  };
 }
 
 /**

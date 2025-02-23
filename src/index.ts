@@ -3,6 +3,7 @@ import { Server } from "./core/server";
 import { Router } from "./core/router";
 import { HttpRequest } from "./core/request";
 import { HttpResponse } from "./core/response";
+import { generateOpenAPIDocument } from "./core/openapi";
 
 // Import middleware
 import { createValidationMiddleware } from "./middleware/validator.ts";
@@ -66,6 +67,20 @@ export class Burger {
     if (this.router) {
       await this.router.loadRoutes();
       this.server.start(async (req: Request) => {
+        // Serve OpenAPI document at /openapi.json
+        const url = new URL(req.url);
+        // Check if the request is for /openapi.json
+        if (url.pathname === "/openapi.json") {
+          if (this.router) {
+            const doc = generateOpenAPIDocument(this.router, this.options);
+            return new Response(JSON.stringify(doc), {
+              headers: { "Content-Type": "application/json" },
+            });
+          } else {
+            return new Response("Router not available", { status: 500 });
+          }
+        }
+
         // Wrap the native request with helper methods
         const request = new HttpRequest(req) as unknown as BurgerRequest;
         const { route, params } = this.router!.resolve(req);
