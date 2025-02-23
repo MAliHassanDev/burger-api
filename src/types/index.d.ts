@@ -221,17 +221,12 @@ export interface RouteDefinition {
   schema?: RouteSchema;
 
   /**
-   * An optional OpenAPI metadata object for the route.
-   * This object defines the OpenAPI specification details for each HTTP method.
-   * The keys are the HTTP method names (e.g. "get", "post") and the values are
-   * objects containing OpenAPI metadata, such as summary and description.
+   * Optional OpenAPI metadata to generate documentation for the route.
+   * If provided, this property should define an object where each key
+   * is an HTTP method name (in lowercase), and the value is an object
+   * containing the OpenAPI metadata for that method.
    */
-  openapi?: {
-    [method: string]: {
-      summary?: string;
-      description?: string;
-    };
-  };
+  openapi?: openapi;
 }
 
 /**
@@ -246,5 +241,31 @@ export type RouteSchema = {
     params?: z.ZodTypeAny;
     query?: z.ZodTypeAny;
     body?: z.ZodTypeAny;
+  };
+};
+
+/**
+ * Optional OpenAPI metadata to generate documentation for the route.
+ * Each key is an HTTP method name (in lowercase) and the value is an object
+ * containing the OpenAPI metadata for that method.
+ *
+ * If the `openapi` property is not defined, the route will not be included in
+ * the generated OpenAPI documentation.
+ *
+ * See the OpenAPI specification for the possible properties and their
+ * descriptions.
+ */
+export type openapi = {
+  [method: string]: {
+    summary?: string;
+    description?: string;
+    tags?: string[];
+    operationId?: string;
+    deprecated?: boolean;
+    responses?: Record<string, any>;
+    externalDocs?: {
+      description?: string;
+      url?: string;
+    };
   };
 };

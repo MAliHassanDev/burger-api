@@ -64,9 +64,9 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
 
     // Validate URL parameters (if available and schema provided).
     // (Assume that middleware upstream attaches route params to req.params.)
-    if (methodSchema.params && (req as any).params) {
+    if (methodSchema.params && req.params) {
       try {
-        validated.params = methodSchema.params.parse((req as any).params);
+        validated.params = methodSchema.params.parse(req.params);
       } catch (e: any) {
         errors.push({ field: "params", error: e.errors });
       }

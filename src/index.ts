@@ -97,6 +97,7 @@ export class Burger {
           const { route, params } = this.router!.resolve(req);
 
           if (!route) {
+            response.setStatus(404);
             return response.json({ error: "Route not found" });
           }
 
