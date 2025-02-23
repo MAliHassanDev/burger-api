@@ -2,14 +2,23 @@ import { z } from "zod";
 
 export interface ServerOptions {
   /**
-   * The port number to listen on.
+   * The title of the API. This is an optional property that can be used
+   * to specify a custom title for the API documentation.
    */
-  port: number;
+  title?: string;
+
+  /**
+   * The description of the API. This is an optional property that can be used
+   * to provide a brief overview of the API.
+   */
+  description?: string;
+
   /**
    * The directory path to load API routes from.
    * If not specified, no API routes are loaded.
    */
   apiDir?: string;
+
   /**
    * The directory path to load Page routes from.
    * If not specified, no Page routes are loaded.
@@ -21,18 +30,6 @@ export interface ServerOptions {
    * Global middleware to be executed before each request.
    */
   globalMiddleware?: Middleware[];
-
-  /**
-   * The title of the API. This is an optional property that can be used
-   * to specify a custom title for the API documentation.
-   */
-  title?: string;
-
-  /**
-   * The description of the API. This is an optional property that can be used
-   * to provide a brief overview of the API.
-   */
-  description?: string;
 
   /**
    * The version of the API. This is an optional property that can be used

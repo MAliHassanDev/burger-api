@@ -12,7 +12,6 @@ import { createValidationMiddleware } from "./middleware/validator.ts";
 // Import types
 import type {
   ServerOptions,
-  RequestHandler,
   BurgerRequest,
   BurgerResponse,
   Middleware,
@@ -54,107 +53,113 @@ export class Burger {
 
   /**
    * Starts the server and begins listening for incoming requests.
-   * If a router is provided, it will be used to handle incoming requests.
-   * If no router is provided, a default handler will be used that returns a plain text response.
-   * @returns A promise that resolves when the server has finished starting.
+   * @param port - The port number to listen on. Defaults to `4000`.
+   * @param cb - An optional cb function to be executed when the server is listening.
+   * @returns A Promise that resolves when the server has started listening.
    */
-  async serve(): Promise<void> {
+  async serve(port: number = 4000, cb?: () => void): Promise<void> {
     // File-based routing mode
     if (this.router) {
       await this.router.loadRoutes();
-      this.server.start(async (req: Request) => {
-        // Wrap the native request with helper methods
-        const request = new HttpRequest(req) as unknown as BurgerRequest;
+      this.server.start(
+        port,
+        async (req: Request) => {
+          // Wrap the native request with helper methods
+          const request = new HttpRequest(req) as unknown as BurgerRequest;
 
-        // Create a new instance of BurgerResponse for the handler
-        const response = new HttpResponse() as unknown as BurgerResponse;
+          // Create a new instance of BurgerResponse for the handler
+          const response = new HttpResponse() as unknown as BurgerResponse;
 
-        // Create URL object
-        const url = new URL(request.url);
+          // Create URL object
+          const url = new URL(request.url);
 
-        // Check if the request is for /openapi.json
-        if (url.pathname === "/openapi.json") {
-          if (this.router) {
-            // Generate OpenAPI document
-            const doc = generateOpenAPIDocument(this.router, this.options);
-            // Return it as JSON
-            return response.json(doc);
-          } else {
-            // Set status to 500
-            response.setStatus(500);
-            // Return an error if router is not available
-            return response.json({ error: "Router not available" });
+          // Check if the request is for /openapi.json
+          if (url.pathname === "/openapi.json") {
+            if (this.router) {
+              // Generate OpenAPI document
+              const doc = generateOpenAPIDocument(this.router, this.options);
+              // Return it as JSON
+              return response.json(doc);
+            } else {
+              // Set status to 500
+              response.setStatus(500);
+              // Return an error if router is not available
+              return response.json({ error: "Router not available" });
+            }
           }
-        }
 
-        // Serve the Swagger UI at /docs
-        if (url.pathname === "/docs") {
-          return response.html(swaggerHtml);
-        }
-
-        // Get the route and params for the current request
-        const { route, params } = this.router!.resolve(req);
-
-        if (!route) {
-          return response.json({ error: "Route not found" });
-        }
-
-        // Add params to the request
-        request.params = params;
-
-        // Get the handler for the current HTTP method
-        const method = req.method.toUpperCase();
-        const handler = route.handlers[method];
-        if (!handler) {
-          response.setStatus(405);
-          return response.json({ error: "Method Not Allowed" });
-        }
-
-        /**
-         * Build the middleware composition chain.
-         * 1. Compose the Route-Specific Chain
-         * 2. Insert Validation Middleware (if a schema exists)
-         * 3. Insert Global Middleware
-         * 4. Execute the handler
-         */
-
-        // 1. Compose the Route-Specific Chain
-        let routeChain = async () => handler(request, response, params);
-        if (route.middleware && route.middleware.length > 0) {
-          // Wrap route-specific middleware (in reverse order to preserve order of execution)
-          for (const mw of route.middleware.slice().reverse()) {
-            const next = routeChain;
-            routeChain = async () => mw(request, response, next);
+          // Serve the Swagger UI at /docs
+          if (url.pathname === "/docs") {
+            return response.html(swaggerHtml);
           }
-        }
 
-        // 2. Insert Validation Middleware (if a schema exists)
-        let composedChain = routeChain;
-        if (route.schema) {
-          const validationMw = createValidationMiddleware(route.schema);
-          composedChain = async () =>
-            validationMw(request, response, routeChain);
-        }
+          // Get the route and params for the current request
+          const { route, params } = this.router!.resolve(req);
 
-        // 3. Wrap Global Middleware (in reverse order so that the first-added runs first)
-        let finalHandler = composedChain;
-        if (this.globalMiddleware.length > 0) {
-          for (const mw of this.globalMiddleware.slice().reverse()) {
-            const next = finalHandler;
-            finalHandler = async () => mw(request, response, next);
+          if (!route) {
+            return response.json({ error: "Route not found" });
           }
-        }
 
-        // Execute the full chain
-        return await finalHandler();
-      });
+          // Add params to the request
+          request.params = params;
+
+          // Get the handler for the current HTTP method
+          const method = req.method.toUpperCase();
+          const handler = route.handlers[method];
+          if (!handler) {
+            response.setStatus(405);
+            return response.json({ error: "Method Not Allowed" });
+          }
+
+          /**
+           * Build the middleware composition chain.
+           * 1. Compose the Route-Specific Chain
+           * 2. Insert Validation Middleware (if a schema exists)
+           * 3. Insert Global Middleware
+           * 4. Execute the handler
+           */
+
+          // 1. Compose the Route-Specific Chain
+          let routeChain = async () => handler(request, response, params);
+          if (route.middleware && route.middleware.length > 0) {
+            // Wrap route-specific middleware (in reverse order to preserve order of execution)
+            for (const mw of route.middleware.slice().reverse()) {
+              const next = routeChain;
+              routeChain = async () => mw(request, response, next);
+            }
+          }
+
+          // 2. Insert Validation Middleware (if a schema exists)
+          let composedChain = routeChain;
+          if (route.schema) {
+            const validationMw = createValidationMiddleware(route.schema);
+            composedChain = async () =>
+              validationMw(request, response, routeChain);
+          }
+
+          // 3. Wrap Global Middleware (in reverse order so that the first-added runs first)
+          let finalHandler = composedChain;
+          if (this.globalMiddleware.length > 0) {
+            for (const mw of this.globalMiddleware.slice().reverse()) {
+              const next = finalHandler;
+              finalHandler = async () => mw(request, response, next);
+            }
+          }
+
+          // Execute the full chain
+          return await finalHandler();
+        },
+        cb
+      );
     } else {
       // Fallback to default handler if no router is provided
       this.server.start(
+        port,
         async (_: Request) =>
           new Response("Hello from burger-api!", {
             headers: { "Content-Type": "text/plain" },
-          })
+          }),
+        cb
       );
     }
   }

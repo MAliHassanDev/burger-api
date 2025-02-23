@@ -12,14 +12,24 @@ export class Server {
   private options: ServerOptions;
   private server: ReturnType<typeof Bun.serve> | null = null;
 
+  /**
+   * Initializes a new instance of the Server class with the given options.
+   * @param options - Configuration options for the server.
+   */
   constructor(options: ServerOptions) {
     this.options = options;
   }
 
-  public start(handler: RequestHandler): void {
+  /**
+   * Starts the server with the given port, handler, and callback.
+   * @param port - The port to listen on.
+   * @param handler - The request handler function.
+   * @param cb - The callback function to be called when the server starts.
+   */
+  public start(port: number, handler: RequestHandler, cb?: () => void): void {
     // Start Bun's native server using Bun.serve
     this.server = Bun.serve({
-      port: this.options.port,
+      port,
       fetch: async (request: Request) => {
         try {
           // Wrap the native Request with HttpRequest to get a BurgerRequest
@@ -32,14 +42,24 @@ export class Server {
 
           return await handler(burgerReq, burgerRes);
         } catch (error) {
-          console.error("Error processing request:", error);
+          console.error("Error processing request in server:", error);
           return new Response("Internal Server Error", { status: 500 });
         }
       },
     });
-    console.log(`✔ Server started on port: ${this.options.port}`);
+    if (cb) {
+      cb();
+    } else {
+      console.log(`✔ Server started on port: ${port}`);
+    }
   }
 
+  /**
+   * Stops the server.
+   * If the server is currently running, this method will stop the server and
+   * log a message to the console indicating that the server has been stopped.
+   * If the server is not running, this method does nothing.
+   */
   public stop(): void {
     if (this.server) {
       this.server.stop();
