@@ -71,6 +71,7 @@ export class Router {
           handlers,
           middleware: routeModule.middleware,
           schema: routeModule.schema,
+          openapi: routeModule.openapi,
         };
         this.routes.push(routeDef);
       }
