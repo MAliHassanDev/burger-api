@@ -58,7 +58,7 @@ export function generateOpenAPIDocument(
   const openapiDoc = {
     openapi: "3.0.0",
     info: {
-      title: options.title || "burger-api",
+      title: options.title || "Burger API",
       description: options.description || "Auto-generated API documentation",
       version: options.version || "1.0.0",
     },

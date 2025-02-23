@@ -4,6 +4,7 @@ import { Router } from "./core/router";
 import { HttpRequest } from "./core/request";
 import { HttpResponse } from "./core/response";
 import { generateOpenAPIDocument } from "./core/openapi";
+import { swaggerHtml } from "./core/swagger-ui.ts";
 
 // Import middleware
 import { createValidationMiddleware } from "./middleware/validator.ts";
@@ -52,40 +53,50 @@ export class Burger {
   }
 
   /**
-   * Starts the server.
-   * Global middleware runs first in the order provided,
-   * then file-specific middleware, and finally the route handler.
+   * Starts the server and begins listening for incoming requests.
+   * If a router is provided, it will be used to handle incoming requests.
+   * If no router is provided, a default handler will be used that returns a plain text response.
+   * @returns A promise that resolves when the server has finished starting.
    */
-  async serve(customHandler?: RequestHandler): Promise<void> {
-    // Custom handler mode
-    if (customHandler) {
-      this.server.start(customHandler);
-      return;
-    }
-
+  async serve(): Promise<void> {
     // File-based routing mode
     if (this.router) {
       await this.router.loadRoutes();
       this.server.start(async (req: Request) => {
-        // Serve OpenAPI document at /openapi.json
-        const url = new URL(req.url);
+        // Wrap the native request with helper methods
+        const request = new HttpRequest(req) as unknown as BurgerRequest;
+
+        // Create a new instance of BurgerResponse for the handler
+        const response = new HttpResponse() as unknown as BurgerResponse;
+
+        // Create URL object
+        const url = new URL(request.url);
+
         // Check if the request is for /openapi.json
         if (url.pathname === "/openapi.json") {
           if (this.router) {
+            // Generate OpenAPI document
             const doc = generateOpenAPIDocument(this.router, this.options);
-            return new Response(JSON.stringify(doc), {
-              headers: { "Content-Type": "application/json" },
-            });
+            // Return it as JSON
+            return response.json(doc);
           } else {
-            return new Response("Router not available", { status: 500 });
+            // Set status to 500
+            response.setStatus(500);
+            // Return an error if router is not available
+            return response.json({ error: "Router not available" });
           }
         }
 
-        // Wrap the native request with helper methods
-        const request = new HttpRequest(req) as unknown as BurgerRequest;
+        // Serve the Swagger UI at /docs
+        if (url.pathname === "/docs") {
+          return response.html(swaggerHtml);
+        }
+
+        // Get the route and params for the current request
         const { route, params } = this.router!.resolve(req);
+
         if (!route) {
-          return new Response("Not Found", { status: 404 });
+          return response.json({ error: "Route not found" });
         }
 
         // Add params to the request
@@ -95,13 +106,17 @@ export class Burger {
         const method = req.method.toUpperCase();
         const handler = route.handlers[method];
         if (!handler) {
-          return new Response("Method Not Allowed", { status: 405 });
+          response.setStatus(405);
+          return response.json({ error: "Method Not Allowed" });
         }
 
-        // Create a new instance of BurgerResponse for the handler
-        const response = new HttpResponse() as unknown as BurgerResponse;
-
-        // Build the middleware composition
+        /**
+         * Build the middleware composition chain.
+         * 1. Compose the Route-Specific Chain
+         * 2. Insert Validation Middleware (if a schema exists)
+         * 3. Insert Global Middleware
+         * 4. Execute the handler
+         */
 
         // 1. Compose the Route-Specific Chain
         let routeChain = async () => handler(request, response, params);

@@ -50,8 +50,10 @@ burger-api/
    Validate incoming requests using Zod schemas exported from route files.
 - [✔] **Route Handler API**  
    Support standard HTTP methods (GET, POST, PUT, DELETE, PATCH, HEAD).
-- [ ] **Automatic OpenAPI Specification Generation**  
-       Generate up-to-date API documentation from your routes and schemas.
+- [✔] **Automatic OpenAPI Specification Generation**  
+   Generate up-to-date API documentation from your routes and schemas.
+- [✔] **Swagger UI**
+  Automatically generate a Swagger UI for your API.
 
 ### **Phase 2: Developer Experience & Automation**
 
