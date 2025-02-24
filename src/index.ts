@@ -121,7 +121,7 @@ export class Burger {
            */
 
           // 1. Compose the Route-Specific Chain
-          let routeChain = async () => handler(request, response, params);
+          let routeChain = async () => handler(request, response);
           if (route.middleware && route.middleware.length > 0) {
             // Wrap route-specific middleware (in reverse order to preserve order of execution)
             for (const mw of route.middleware.slice().reverse()) {

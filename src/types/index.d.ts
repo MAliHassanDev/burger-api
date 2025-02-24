@@ -168,20 +168,17 @@ export interface BurgerResponse {
 
 /**
  * Represents a request handler function.
- * Request handler functions receive a BurgerRequest, BurgerResponse, and
- * optional URL parameters as arguments. They must return a Response object,
- * which can be either a Promise that resolves with a Response object or a
- * Response object directly.
+ * Request handler functions receive a BurgerRequest and BurgerResponse as
+ * arguments. They must return a Response object, which can be either a Promise
+ * that resolves with a Response object or a Response object directly.
  *
  * @param request - The incoming BurgerRequest object.
  * @param response - The outgoing BurgerResponse object.
- * @param params - Optional URL parameters as a Record<string, string>.
  * @returns A Response object or a Promise that resolves with a Response object.
  */
 export type RequestHandler = (
   request: BurgerRequest,
-  response: BurgerResponse,
-  params?: Record<string, string>
+  response: BurgerResponse
 ) => Promise<Response> | Response;
 
 /**
