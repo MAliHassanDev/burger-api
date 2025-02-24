@@ -59,7 +59,7 @@ The framework is built on the following core principles:
   - Develop a CLI (`burger-api-cli`) for scaffolding projects and managing configurations.
 - [ ] **Hot Reloading/Watch Mode**
   - Implement file watching for automatic server reload on code changes.
-- [ ] **Enhanced Error Handling**
+- [✔] **Enhanced Error Handling**
   - Build a robust, centralized error-handling mechanism.
 - [ ] **Improved Logging & Monitoring**
   - Provide built-in logging and request/response tracking for production debugging.
