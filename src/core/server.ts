@@ -1,5 +1,9 @@
+// Import stuff from core
 import { HttpRequest } from "./request.ts";
 import { HttpResponse } from "./response.ts";
+
+// Import stuff from utils
+import { errorResponse } from "@/utils/error.ts";
 
 import type {
   ServerOptions,
@@ -40,10 +44,11 @@ export class Server {
           // Wrap the native Response with HttpResponse to get a BurgerResponse
           const burgerRes = new HttpResponse() as unknown as BurgerResponse;
 
+          // Invoke and return the handler with the wrapped requests and responses
           return await handler(burgerReq, burgerRes);
         } catch (error) {
-          console.error("Error processing request in server:", error);
-          return new Response("Internal Server Error", { status: 500 });
+          // Return a custom error response
+          return errorResponse(error, request, this.options.debug ?? false);
         }
       },
     });

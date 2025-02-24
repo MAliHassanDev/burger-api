@@ -36,6 +36,13 @@ export interface ServerOptions {
    * to specify the version of the API.
    */
   version?: string;
+
+  /**
+   * Enables or disables debug mode. This is an optional property
+   * that, when set to true, can be used to output additional debugging
+   * information to the console or logs to aid in development and troubleshooting.
+   */
+  debug?: boolean;
 }
 
 export interface BurgerRequest extends Request {
