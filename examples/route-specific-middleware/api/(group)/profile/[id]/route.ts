@@ -12,15 +12,11 @@ export const middleware = [
   },
 ];
 
-export async function GET(
-  req: BurgerRequest,
-  res: BurgerResponse,
-  params: { id: string }
-) {
+export async function GET(req: BurgerRequest, res: BurgerResponse) {
   const query = req.query;
 
   return res.json({
-    id: params.id,
+    id: req?.params?.id,
     query: query,
     name: "John Doe",
   });

@@ -15,17 +15,17 @@ export const schema = {
 
 // Route-specific middleware
 export const middleware = [
-  async (req: BurgerRequest, res: BurgerResponse, next: () => Promise<Response>) => {
+  async (
+    req: BurgerRequest,
+    res: BurgerResponse,
+    next: () => Promise<Response>
+  ) => {
     console.log("Product Detail Route-specific middleware executed");
     return await next();
   },
 ];
 
-export async function GET(
-  req: BurgerRequest,
-  res: BurgerResponse,
-  params: { id: number }
-) {
+export async function GET(req: BurgerRequest, res: BurgerResponse) {
   const validatedParams = req.validated?.params;
   return res.json({
     id: validatedParams,

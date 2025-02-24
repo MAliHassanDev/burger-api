@@ -51,7 +51,6 @@ export const middleware = [
 export async function GET(
   req: BurgerRequest,
   res: BurgerResponse,
-  params: { id: number }
 ) {
   console.log("[GET] Dynamic Product route invoked");
 
