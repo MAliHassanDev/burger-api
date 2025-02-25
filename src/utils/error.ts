@@ -1,3 +1,5 @@
+import { normalizePath } from "./index";
+
 /**
  * Generates an HTTP error response based on the request's "Accept" header.
  *
@@ -19,6 +21,14 @@ export function errorResponse(
   req: Request,
   debug: boolean
 ): Response {
+  // Extract request details
+  const method = req.method;
+  const url = req.url;
+  const logPrefix = `[${method} ${url}]`;
+
+  // Log detailed error context
+  console.error(`${logPrefix} Error:`, error);
+
   const acceptHeader = req.headers.get("accept") || "";
   if (acceptHeader.includes("text/html") && debug) {
     const body = `
@@ -93,7 +103,6 @@ export function errorResponse(
                     border-radius: 6px;
                     display: inline-block;
                     font-size: 14px;
-                    margin-bottom: 1em;
                 }
 
                 .error-message {
@@ -135,6 +144,12 @@ export function errorResponse(
                     font-size: 2em;
                 }
 
+                .request-info{
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
                 /* Font Import (Google Fonts) */
                 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap');
                 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
@@ -153,22 +168,24 @@ export function errorResponse(
                     </div>
                 </div>
                 <div class="whoops-content">
-                    <div class="tag">${
-                      error.stack?.split("\n")[0].split(":")[0]
-                    }</div>
-                    <p class="error-message">${error.message}</p>
+                    <div class="request-info">
+                        <div><strong>Request:</strong> ${method} ${url}</div>
+                        <div class="tag">
+                            ${error.stack?.split("\n")[0].split(":")[0]}
+                        </div>
+                    </div>
+                    <p class="error-message">
+                        ${error.message}
+                    </p>
                     <h2>Stack Trace</h2>
                     <pre>${error.stack || "No stack trace available"}</pre>
                     <div class="footer">
-                        Powered by BurgerAPI
+                        “It’s not a bug, it’s an undocumented feature.” — Anonymous
                     </div>
                 </div>
             </div>
         </body>
         </html>`;
-
-    // Log the error to the console
-    console.error(error);
 
     // Return the html response
     return new Response(body, {
@@ -176,13 +193,14 @@ export function errorResponse(
       headers: { "Content-Type": "text/html" },
     });
   } else if (debug) {
-    // Log the error to the console
-    console.error(error);
+    // Log detailed error context
+    console.error(`${logPrefix} Error:`, error);
 
     // Create a JSON response
     const body = JSON.stringify({
+      request: `${method} ${url}`,
       error: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : "",
+      stack: error instanceof Error ? normalizePath(error.stack || "") : "",
     });
 
     // Return the JSON response
@@ -191,8 +209,8 @@ export function errorResponse(
       headers: { "Content-Type": "application/json" },
     });
   } else {
-    // Log the error to the console
-    console.error(error);
+    // Log detailed error context
+    console.error(`${logPrefix} Error:`, error);
 
     // Return a plain text response
     return new Response("Internal Server Error", { status: 500 });
