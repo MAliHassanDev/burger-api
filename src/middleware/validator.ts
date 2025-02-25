@@ -85,12 +85,22 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
 
     // Validate request body.
     if (methodSchema.body) {
-      try {
-        // We assume the request body is JSON.
-        const bodyData = await req.json();
-        validated.body = methodSchema.body.parse(bodyData);
-      } catch (e: any) {
-        errors.push({ field: "body", error: e.errors || e.message });
+      // Check the Content-Type header.
+      const contentType = req.headers.get("Content-Type") || "";
+      if (!contentType.includes("application/json")) {
+        // If not JSON, push an error indicating the expected content type.
+        errors.push({
+          field: "body",
+          error: "Invalid Content-Type. Expected 'application/json'.",
+        });
+      } else {
+        try {
+          // Attempt to parse the JSON body.
+          const bodyData = await req.json();
+          validated.body = methodSchema.body.parse(bodyData);
+        } catch (e: any) {
+          errors.push({ field: "body", error: e.errors || e.message });
+        }
       }
     }
 
