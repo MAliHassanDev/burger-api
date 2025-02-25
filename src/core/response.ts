@@ -1,96 +1,117 @@
 export class HttpResponse {
-  // Default status is 200, and headers start empty.
+  /**
+   * The status code of the response, which defaults to 200 (OK). This
+   * property can be modified before calling build() to construct the
+   * Response object.
+   */
   private _status: number = 200;
+  /**
+   * The headers of the response, which can be modified before calling build()
+   * to construct the Response object.
+   */
   private _headers: Headers = new Headers();
+  /**
+   * The body of the response, which can be any valid BodyInit type or null.
+   */
   private _body: BodyInit | null = null;
 
-  constructor() {}
-
   /**
-   * Set a header value.
-   * @param name Header name
-   * @param value Header value
+   * Set a header on the response.
+   * @param name - The header name.
+   * @param value - The header value.
+   * @returns The response object.
    */
-  public setHeader(name: string, value: string): void {
+  public header(name: string, value: string): this {
     this._headers.set(name, value);
+    return this;
   }
 
   /**
-   * Remove a header.
-   * @param name Header name to remove
+   * Remove a header from the response.
+   * @param name - The header name.
+   * @returns The response object.
    */
-  public removeHeader(name: string): void {
+  public removeHeader(name: string): this {
     this._headers.delete(name);
+    return this;
   }
 
   /**
-   * Set the HTTP status.
-   * @param status Status code
+   * Sets the HTTP status code of the response.
+   * @param status - The status code.
+   * @returns The response object.
    */
-  public setStatus(status: number): void {
+  public status(status: number): this {
     this._status = status;
+    return this;
   }
 
   /**
-   * Set the response body.
-   * @param body Body content
+   * Sets the body of the response.
+   * @param body - The content to be used as the response body.
+   * @returns The response object for method chaining.
    */
-  public setBody(body: BodyInit): void {
+  public body(body: BodyInit): this {
     this._body = body;
+    return this;
   }
 
   /**
-   * Creates a JSON response.
-   * This sets the "Content-Type" header and serializes the data.
-   * @param data The data to serialize as JSON.
-   * @returns The final Response object.
+   * Sets the content type to "application/json" and serializes the provided data
+   * into a JSON string to set as the response body.
+   * @param data - The data to be serialized and sent as the response body.
+   * @returns The finalized Response object after building.
    */
   public json(data: unknown): Response {
-    this.setHeader("Content-Type", "application/json");
+    this.header("Content-Type", "application/json");
     this._body = JSON.stringify(data);
     return this.build();
   }
 
   /**
-   * Creates a plain text response.
-   * @param data The text to send.
-   * @returns The final Response object.
+   * Sets the content type to "text/plain" and assigns the provided text data
+   * as the response body.
+   * @param data - The text to be sent as the response body.
+   * @returns The finalized Response object after building.
    */
   public text(data: string): Response {
-    this.setHeader("Content-Type", "text/plain");
+    this.header("Content-Type", "text/plain");
     this._body = data;
     return this.build();
   }
 
   /**
-   * Creates an HTML response.
-   * @param data The HTML string.
-   * @returns The final Response object.
+   * Sets the content type to "text/html" and assigns the provided HTML data
+   * as the response body.
+   * @param data - The HTML string to be sent as the response body.
+   * @returns The finalized Response object after building.
    */
   public html(data: string): Response {
-    this.setHeader("Content-Type", "text/html");
+    this.header("Content-Type", "text/html");
     this._body = data;
     return this.build();
   }
 
   /**
-   * Creates a redirect response.
-   * @param url The URL to redirect to.
-   * @param status Optional status code (default is 302).
-   * @returns The final Response object.
+   * Sets the HTTP status code and removes the "Location" header from the
+   * response.
+   * @param status - The status code.
+   * @returns The response object.
    */
-  public redirect(url: string, status: number = 302): Response {
-    this.setStatus(status);
-    this.setHeader("Location", url);
-    // Typically a redirect response doesn't have a body.
+  public redirect(url: string, status: number = 302): this {
+    this.status(status);
+    this.header("Location", url);
     this._body = null;
-    return this.build();
+    return this;
   }
 
   /**
-   * Creates a file response using Bun.file.
-   * @param filePath The file path to serve.
-   * @returns The final Response object.
+   * Convenience method to send a file response using Bun.file.
+   * Attempts to serve the specified file and set it as the response body.
+   * If the file cannot be found or an error occurs, logs the error and
+   * returns a 404 response with "File not found" as the body.
+   * @param filePath - The file path to serve.
+   * @returns The finalized Response object.
    */
   public file(filePath: string): Response {
     try {
@@ -99,17 +120,17 @@ export class HttpResponse {
       return this.build();
     } catch (error) {
       console.error("Error serving file:", error);
-      this.setStatus(404);
+      this.status(404);
       this._body = "File not found";
       return this.build();
     }
   }
 
   /**
-   * Returns a Response directly using the provided body and init.
-   * This is a direct passthrough and does not use the mutable state.
-   * @param body The response body.
-   * @param init Optional ResponseInit.
+   * Returns a Response directly using the provided body and init settings.
+   * This bypasses the mutable state.
+   * @param body - The response body.
+   * @param init - Optional ResponseInit settings.
    * @returns A new Response object.
    */
   public original(body?: BodyInit | null, init?: ResponseInit): Response {
@@ -117,8 +138,8 @@ export class HttpResponse {
   }
 
   /**
-   * Builds the final Response object using the current mutable state.
-   * @returns The final Response object.
+   * Builds the final Response object using the current state.
+   * @returns The finalized Response object.
    */
   public build(): Response {
     return new Response(this._body, {

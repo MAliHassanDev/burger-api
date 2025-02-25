@@ -96,8 +96,7 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
 
     if (errors.length > 0) {
       // If validation fails, return a 400 response with error details.
-      res.setStatus(400);
-      return res.json({ errors });
+      return res.status(400).json({ errors });
     }
 
     // Attach validated data to the request.

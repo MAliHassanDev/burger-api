@@ -88,26 +88,30 @@ export interface BurgerResponse {
    * Sets a header value.
    * @param name - The header name.
    * @param value - The header value.
+   * @returns The current instance for chaining.
    */
-  setHeader(name: string, value: string): void;
+  header(name: string, value: string): this;
 
   /**
    * Removes a header.
    * @param name - The header name to remove.
+   * @returns The current instance for chaining.
    */
-  removeHeader(name: string): void;
+  removeHeader(name: string): this;
 
   /**
    * Sets the HTTP status code.
    * @param status - The status code.
+   * @returns The current instance for chaining.
    */
-  setStatus(status: number): void;
+  status(status: number): this;
 
   /**
    * Sets the response body.
    * @param body - The body content.
+   * @returns The current instance for chaining.
    */
-  setBody(body: BodyInit): void;
+  body(body: BodyInit): this;
 
   /**
    * Builds and returns the final Response object using the current state.
@@ -145,9 +149,9 @@ export interface BurgerResponse {
    * Sets the "Location" header and status code.
    * @param url - The URL to redirect to.
    * @param status - The HTTP status code (default 302).
-   * @returns The final Response object.
+   * @returns The current instance for chaining.
    */
-  redirect(url: string, status?: number): Response;
+  redirect(url: string, status?: number): this;
 
   /**
    * Convenience method to send a file response using Bun.file.
