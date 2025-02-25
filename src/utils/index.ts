@@ -26,3 +26,21 @@ export function cleanPrefix(prefix: string): string {
   }
   return prefix;
 }
+
+/**
+ * Normalizes a file path by replacing multiple slashes with a single slash
+ * and removing any trailing slash, unless the path is the root.
+ * @param path The file path to normalize.
+ * @returns The normalized file path.
+ */
+export function normalizePath(path: string): string {
+  // Replace multiple slashes with a single slash
+  let normalized = path.replace(/\/+/g, "/");
+
+  // Remove trailing slash if it's not the root
+  if (normalized.length > 1 && normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
+  }
+
+  return normalized;
+}

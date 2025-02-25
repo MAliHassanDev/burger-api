@@ -3,7 +3,7 @@ import { readdirSync } from "fs";
 import * as path from "path";
 
 // Import utils
-import { cleanPrefix } from "@/utils/index.ts";
+import { cleanPrefix, normalizePath } from "@/utils/index.ts";
 
 // Import types
 import type { RequestHandler, RouteDefinition } from "../types/index.d.ts";
@@ -151,7 +151,7 @@ export class Router {
     params: Record<string, string>;
   } {
     const url = new URL(request.url);
-    const reqPath = url.pathname;
+    const reqPath = normalizePath(url.pathname);
     const method = request.method.toUpperCase();
 
     for (const route of this.routes) {
