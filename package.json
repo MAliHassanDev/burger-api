@@ -1,6 +1,6 @@
 {
   "name": "burger-api",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "author": "Isfhan Ahmed",
   "type": "module",
   "module": "dist/index.js",

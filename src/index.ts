@@ -81,10 +81,10 @@ export class Burger {
               // Return it as JSON
               return response.json(doc);
             } else {
-              // Set status to 500
-              response.setStatus(500);
               // Return an error if router is not available
-              return response.json({ error: "Router not available" });
+              return response
+                .status(500)
+                .json({ error: "Router not available" });
             }
           }
 
@@ -97,8 +97,8 @@ export class Burger {
           const { route, params } = this.router!.resolve(req);
 
           if (!route) {
-            response.setStatus(404);
-            return response.json({ error: "Route not found" });
+            // Return a 404 if no route is found
+            return response.status(404).json({ error: "Route not found" });
           }
 
           // Add params to the request
@@ -108,8 +108,8 @@ export class Burger {
           const method = req.method.toUpperCase();
           const handler = route.handlers[method];
           if (!handler) {
-            response.setStatus(405);
-            return response.json({ error: "Method Not Allowed" });
+            // Return a 405 if no handler is found
+            return response.status(405).json({ error: "Method Not Allowed" });
           }
 
           /**
