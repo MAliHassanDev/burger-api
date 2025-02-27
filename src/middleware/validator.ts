@@ -4,7 +4,7 @@ import type {
   BurgerResponse,
   Middleware,
   RouteSchema,
-} from "../types/index";
+} from "../types/index.js";
 
 /**
  * Creates a middleware function that validates request data according to the

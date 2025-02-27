@@ -28,9 +28,6 @@
     "rootDir": ".",
     "outDir": "./dist",
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
   },
   "include": ["src/**/*", "tests/**/*", "examples/schemas"],
   "exclude": ["node_modules", "dist"]

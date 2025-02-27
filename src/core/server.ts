@@ -1,16 +1,16 @@
 // Import stuff from core
-import { HttpRequest } from "./request";
-import { HttpResponse } from "./response";
+import { HttpRequest } from "./request.js";
+import { HttpResponse } from "./response.js";
 
 // Import stuff from utils
-import { errorResponse } from "@/utils/error";
+import { errorResponse } from "../utils/error.js";
 
 import type {
   ServerOptions,
   RequestHandler,
   BurgerRequest,
   BurgerResponse,
-} from "../types/index.d";
+} from "../types";
 
 export class Server {
   private options: ServerOptions;

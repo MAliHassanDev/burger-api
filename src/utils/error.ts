@@ -1,4 +1,4 @@
-import { normalizePath } from "./index";
+import { normalizePath } from "./index.js";
 
 /**
  * Generates an HTTP error response based on the request's "Accept" header.
