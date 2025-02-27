@@ -3,10 +3,10 @@ import { readdirSync } from "fs";
 import * as path from "path";
 
 // Import utils
-import { cleanPrefix, normalizePath } from "@/utils/index.ts";
+import { cleanPrefix, normalizePath } from "@/utils/index";
 
 // Import types
-import type { RequestHandler, RouteDefinition } from "../types/index.d.ts";
+import type { RequestHandler, RouteDefinition } from "../types/index.d";
 
 /**
  * Router class for handling file-based routing.

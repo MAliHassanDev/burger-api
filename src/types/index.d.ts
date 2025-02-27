@@ -32,6 +32,11 @@ export interface ServerOptions {
   globalMiddleware?: Middleware[];
 
   /**
+   * The templating engine to use for rendering HTML templates.
+   */
+  templatingEngine?: TemplatingEngine;
+
+  /**
    * The version of the API. This is an optional property that can be used
    * to specify the version of the API.
    */
@@ -277,3 +282,8 @@ export type openapi = {
     };
   };
 };
+
+export type TemplatingEngine = (
+  templatePath: string,
+  props?: Record<string, any>
+) => Promise<string>;

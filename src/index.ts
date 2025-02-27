@@ -4,10 +4,10 @@ import { Router } from "./core/router";
 import { HttpRequest } from "./core/request";
 import { HttpResponse } from "./core/response";
 import { generateOpenAPIDocument } from "./core/openapi";
-import { swaggerHtml } from "./core/swagger-ui.ts";
+import { swaggerHtml } from "./core/swagger-ui";
 
 // Import middleware
-import { createValidationMiddleware } from "./middleware/validator.ts";
+import { createValidationMiddleware } from "./middleware/validator";
 
 // Import types
 import type {
@@ -15,7 +15,7 @@ import type {
   BurgerRequest,
   BurgerResponse,
   Middleware,
-} from "./types/index.d.ts";
+} from "./types/index.d";
 
 export class Burger {
   private server: Server;
@@ -176,4 +176,4 @@ export type {
   BurgerRequest,
   BurgerResponse,
   Middleware,
-} from "./types/index.d.ts";
+} from "./types/index.d";

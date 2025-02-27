@@ -2,7 +2,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 
 // Import types
 import type { Router } from "./router";
-import type { ServerOptions } from "../types/index.d.ts";
+import type { ServerOptions } from "../types/index.d";
 
 /**
  * Builds an array of OpenAPI 3.0 parameters based on the Zod schema.
