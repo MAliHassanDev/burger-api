@@ -104,6 +104,7 @@ const burger = new Burger({
   apiDir: "api",
   globalMiddleware: [globalLogger],
   version: "1.0.0",
+  debug: true, // Enable debug mode for detailed logging and stack trace page
 });
 
 // Start the server on port 4000 with a callback
@@ -111,6 +112,144 @@ burger.serve(4000, (port) => {
   console.log(`Server is running on port ${port}`);
 });
 ```
+
+The `debug` option enables:
+- 🔍 Interactive stack trace page at when errors occur
+  - Shows detailed error information
+  - Displays the full stack trace
+  - Highlights the exact line where the error occurred
+  - Provides request context and environment details
+
+This is particularly useful during development to understand how your API is working and troubleshoot issues.
+
+### **Recommended Project Structure**
+
+Here's a recommended project structure that helps keep your code organized and maintainable:
+
+```
+my-api/
+├── src/
+│   ├── api/                    # API routes
+│   │   ├── products/
+│   │   │   ├── route.ts       # Product routes
+│   │   │   └── [id]/
+│   │   │       └── route.ts   # Product detail routes
+│   │   └── users/
+│   │       └── route.ts       # User routes
+│   ├── middleware/            # Middleware
+│   │   ├── global/           # Global middleware
+│   │   │   ├── logger.ts
+│   │   │   └── auth.ts
+│   │   └── routes/           # Route-specific middleware
+│   │       ├── products.ts
+│   │       └── users.ts
+│   ├── schemas/              # Zod schemas
+│   │   ├── product.ts
+│   │   └── user.ts
+│   ├── utils/               # Utility functions
+│   │   ├── errors.ts
+│   │   └── helpers.ts
+│   └── index.ts             # Main application file
+├── package.json
+└── tsconfig.json
+```
+
+### **Example Implementation**
+
+Here's how to implement this structure:
+
+1. **Global Middleware** (`src/middleware/global/logger.ts`):
+```ts
+import type { BurgerRequest, BurgerResponse } from "burger-api";
+
+export const logger = async (req: BurgerRequest, res: BurgerResponse, next: () => Promise<Response>) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  return next();
+};
+```
+
+2. **Route-Specific Middleware** (`src/middleware/routes/products.ts`):
+```ts
+import type { BurgerRequest, BurgerResponse } from "burger-api";
+
+export const validateProductAccess = async (
+  req: BurgerRequest,
+  res: BurgerResponse,
+  next: () => Promise<Response>
+) => {
+  // Your middleware logic here
+  return next();
+};
+```
+
+3. **Schemas** (`src/schemas/product.ts`):
+```ts
+import { z } from "zod";
+
+export const productSchema = {
+  create: z.object({
+    name: z.string().min(1),
+    price: z.number().positive(),
+    description: z.string().optional(),
+  }),
+  update: z.object({
+    name: z.string().min(1).optional(),
+    price: z.number().positive().optional(),
+    description: z.string().optional(),
+  }),
+};
+```
+
+4. **Route File** (`src/api/products/route.ts`):
+```ts
+import type { BurgerRequest, BurgerResponse } from "burger-api";
+import { validateProductAccess } from "../../middleware/routes/products";
+import { productSchema } from "../../schemas/product";
+
+export const middleware = [validateProductAccess];
+export const schema = {
+  post: {
+    body: productSchema.create,
+  },
+  put: {
+    body: productSchema.update,
+  },
+};
+
+export async function GET(req: BurgerRequest, res: BurgerResponse) {
+  return res.json({ message: "List of products" });
+}
+
+export async function POST(req: BurgerRequest, res: BurgerResponse) {
+  const body = req.validated?.body;
+  return res.json({ message: "Product created", data: body });
+}
+```
+
+5. **Main Application** (`src/index.ts`):
+```ts
+import { Burger } from "burger-api";
+import { logger } from "./middleware/global/logger";
+
+const burger = new Burger({
+  title: "Product API",
+  description: "API for managing products",
+  apiDir: "api",
+  globalMiddleware: [logger],
+  version: "1.0.0",
+});
+
+burger.serve(4000, (port) => {
+  console.log(`Server is running on port ${port}`);
+});
+```
+
+This structure provides several benefits:
+- 🎯 Clear separation of concerns
+- 📁 Easy to find and maintain code
+- 🔄 Reusable components
+- 🧹 Clean and organized codebase
+- 📚 Better scalability
 
 ### **File-Based Routing Examples**
 

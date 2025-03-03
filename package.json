@@ -1,6 +1,6 @@
 {
   "name": "burger-api",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "author": "Isfhan Ahmed",
   "type": "module",
   "module": "dist/src/index.js",
@@ -25,9 +25,6 @@
     "high-performance",
     "esm",
     "typescript",
-    "file-based routing",
-    "middleware",
-    "zod-validation",
     "openapi",
     "swagger-ui",
     "declarative-routing",
@@ -63,6 +60,15 @@
     "bun-js-framework",
     "bun-backend"
   ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isfhan/burger-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/isfhan/burger-api/issues"
+  },
+  "homepage": "https://github.com/isfhan/burger-api#readme",
   "dependencies": {
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.2"
