@@ -1,4 +1,4 @@
-# 🍔 burger-api [![Under Development](https://img.shields.io/badge/under%20development-red.svg)](https://github.com/isfhan/burger-api) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Bun](https://img.shields.io/badge/Bun-1.0.0-black?logo=bun)](https://bun.sh)
+# 🍔 burger-api [![Under Development](https://img.shields.io/badge/under%20development-red.svg)](https://github.com/isfhan/burger-api) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Bun](https://img.shields.io/badge/Bun-1.2.4-black?logo=bun)](https://bun.sh)
 
 **burger-api** is a modern, open source API framework built on [Bun.js](https://bun.sh). It combines the simplicity of file-based routing with powerful features like built-in middleware, Zod-based schema validation, and automatic OpenAPI generation. Designed for high performance and ease-of-use, burger-api leverages Bun's native modules to deliver blazing-fast API responses while keeping your codebase clean and maintainable.
 
