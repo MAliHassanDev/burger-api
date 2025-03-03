@@ -1,61 +1,60 @@
-# burger-api [![Under Development](https://img.shields.io/badge/under%20development-red.svg)](https://github.com/isfhan/burger-api)
+# 🍔 burger-api [![Under Development](https://img.shields.io/badge/under%20development-red.svg)](https://github.com/isfhan/burger-api) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Bun](https://img.shields.io/badge/Bun-1.0.0-black?logo=bun)](https://bun.sh)
 
-**burger-api** is a modern, open source API framework built on [Bun.js](https://bun.sh). It combines the simplicity of file-based routing (inspired by Next.js) with powerful features like built-in middleware, Zod-based schema validation, and automatic OpenAPI generation. Designed for high performance and ease-of-use, burger-api leverages Bun’s native modules to deliver blazing-fast API responses while keeping your codebase clean and maintainable.
+**burger-api** is a modern, open source API framework built on [Bun.js](https://bun.sh). It combines the simplicity of file-based routing with powerful features like built-in middleware, Zod-based schema validation, and automatic OpenAPI generation. Designed for high performance and ease-of-use, burger-api leverages Bun's native modules to deliver blazing-fast API responses while keeping your codebase clean and maintainable.
 
 **This project is under active development and should not be used in production yet.**
 
-## Overview
+## 🚀 Overview
 
 burger-api is built to offer a robust developer experience through:
 
-- **Bun-Native Performance:**  
-  Leverages Bun’s high-performance HTTP server.
+- ⚡ **Bun-Native Performance:**  
+  Leverages Bun's high-performance HTTP server.
 
-- **File-Based Routing:**  
-  Automatically registers API and page routes from your file structure using a clear naming convention.
+- 📁 **File-Based Routing:**  
+  Automatically registers API routes from your file structure using a clear naming convention.
 
-- **Middleware Architecture:**  
+- 🔄 **Middleware Architecture:**  
   Supports both global and route-specific middleware with a familiar `req, res, next` pattern.
 
-- **Type-Safe Validation:**  
+- ✅ **Type-Safe Validation:**  
   Utilizes Zod for request validation, ensuring full type safety and automatic error reporting.
 
-- **Automatic OpenAPI Generation:**  
+- 📚 **Automatic OpenAPI Generation:**  
   Generates a complete OpenAPI 3.0 specification (with support for tags, summaries, descriptions, operationId, deprecated status, externalDocs, and more) directly from your routes and Zod schemas.
 
-- **Swagger UI Integration:**  
+- 🔍 **Swagger UI Integration:**  
   Provides an out-of-the-box Swagger UI endpoint for interactive API documentation.
 
-## Features
+## ✨ Features
 
 ### Core Features
 
-- **Bun-Native HTTP Server:**  
-  Built on Bun’s native APIs for exceptional performance.
+- ⚡ **Bun-Native HTTP Server:**  
+  Built on Bun's native APIs for exceptional performance.
 
-- **File-Based Routing Engine:**  
+- 📁 **File-Based Routing Engine:**  
   Automatically scans directories to register routes.
 
   - Supports dynamic routes via folder names like `[id]` for `/api/product/:id`.
-  - Differentiates between API routes (`route.ts`) and page routes (`page.ts`).
 
-- **Request & Response Enhancements:**
+- 🛠️ **Request & Response Enhancements:**
 
   - `BurgerRequest` extends the native Request to include query, params, and validated data.
   - `BurgerResponse` provides methods to set headers, status, and build responses (JSON, text, HTML, redirects, files).
 
-- **Middleware System:**
+- 🔄 **Middleware System:**
 
   - **Global Middleware:** Runs on every request.
   - **Route-Specific Middleware:** Defined in individual route files.
   - **Validation Middleware:** Automatically validates request data using Zod schemas exported from routes.
 
-- **Zod-Based Schema Validation:**  
+- ✅ **Zod-Based Schema Validation:**  
   Automatically validates request params, query, and body using Zod.
 
   - Supports preprocessing (e.g., converting URL parameters from string to number).
 
-- **Automatic OpenAPI Specification Generation:**  
+- 📚 **Automatic OpenAPI Specification Generation:**  
   Generates an OpenAPI 3.0 document using route metadata and Zod schemas.
 
   - **OpenAPI Options:**
@@ -63,10 +62,22 @@ burger-api is built to offer a robust developer experience through:
     - Per-route metadata (summary, description, tags, operationId, deprecated, externalDocs)
     - Auto-generated parameters and requestBody schemas (using `zod-to-json-schema` for detailed inline JSON schema definitions)
 
-- **Swagger UI Integration:**  
+- 🔍 **Swagger UI Integration:**  
   Provides a `/docs` endpoint serving an interactive Swagger UI that reads from `/openapi.json`.
 
-## Installation
+## 🎯 What's Coming Next?
+
+We're enhancing burger-api to make it even more powerful! While our core focus remains on building fast, type-safe APIs, we're adding the ability to serve simple pages when needed:
+
+### 🎨 Simple Page Serving (Coming Soon!)
+- Optional page serving capability for simple views
+- Perfect for API documentation, admin panels, or simple dashboards
+- Not meant to replace full-stack frameworks like Next.js
+- For complex frontend applications, we recommend using dedicated frontend frameworks
+
+Stay tuned for updates as we continue to build and improve burger-api! We're committed to making it the best API framework for Bun.js.
+
+## 📦 Installation
 
 Install burger-api via bun:
 
@@ -74,12 +85,12 @@ Install burger-api via bun:
 bun add burger-api
 ```
 
-## How to Use burger-api
+## 🚀 How to Use burger-api
 
 ### **Basic Usage Example**
 
 ```ts
-import { Burger, setDir } from "burger-api";
+import { Burger } from "burger-api";
 
 // Global middleware example: a simple logger.
 const globalLogger = async (req, res, next) => {
@@ -88,11 +99,11 @@ const globalLogger = async (req, res, next) => {
 };
 
 const burger = new Burger({
-  apiDir: setDir(__dirname, "api"),
   title: "My Custom API",
   description: "Custom API with auto-generated docs and validation",
-  version: "1.0.0",
+  apiDir: "api",
   globalMiddleware: [globalLogger],
+  version: "1.0.0",
 });
 
 // Start the server on port 4000 with a callback
@@ -103,10 +114,10 @@ burger.serve(4000, (port) => {
 
 ### **File-Based Routing Examples**
 
-- **Static API Route:**  
+- 📄 **Static API Route:**  
   Place a file at `src/api/route.ts` to handle the root API endpoint (e.g., `/api`).
 
-- **Dynamic API Route:**  
+- 🔄 **Dynamic API Route:**  
   For routes with dynamic segments, create folders with square brackets. For example:
   ```
   src/api/product/
@@ -194,32 +205,34 @@ export async function POST(req: BurgerRequest, res: BurgerResponse) {
 
 ### **API Documentation Endpoints**
 
-- **OpenAPI JSON:**  
+- 📚 **OpenAPI JSON:**  
   Access `http://localhost:4000/openapi.json` to view the auto-generated OpenAPI specification.
 
-- **Swagger UI:**  
+- 🔍 **Swagger UI:**  
   Access `http://localhost:4000/docs` to view interactive API documentation via Swagger UI.
 
-## Contributing
+## 🤝 Contributing
 
-We welcome contributions from the community! If you have suggestions or improvements, please open an issue or submit a pull request. Let’s build something amazing together.
+We welcome contributions from the community! If you have suggestions or improvements, please open an issue or submit a pull request. Let's build something amazing together.
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## FAQs & Additional Resources
+The MIT License is a permissive license that is short and to the point. It lets people do anything they want with your code as long as they provide attribution back to you and don't hold you liable.
 
-- **How do I add custom middleware?**  
+## ❓ FAQs & Additional Resources
+
+- 🔄 **How do I add custom middleware?**  
   You can pass an array of global middleware in the Burger options or export route-specific middleware in your route files.
 
-- **How does file-based routing work?**  
-  Place your route files under `src/api/` (or `src/pages/`) using folder and file naming conventions (e.g., `[id]` for dynamic routes).
+- 📁 **How does file-based routing work?**  
+  Place your route files under `src/api/` or just `/api` using folder and file naming conventions (e.g., `[id]` for dynamic routes).
 
-- **How is validation handled?**  
+- ✅ **How is validation handled?**  
   burger-api uses Zod for schema validation. Define your schemas in your route files and they are automatically used to validate incoming requests.
 
-- **How can I customize the OpenAPI documentation?**  
+- 📚 **How can I customize the OpenAPI documentation?**  
   Override the default auto-generated summaries, descriptions, tags, and operationIds by exporting an `openapi` object in your route files.
 
-_burger-api_ aims to revolutionize your API development experience with simplicity, speed, and cutting-edge features. Happy coding!
+_burger-api_ aims to revolutionize your API development experience with simplicity, speed, and cutting-edge features. Happy coding! 🚀
