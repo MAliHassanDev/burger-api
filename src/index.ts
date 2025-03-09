@@ -1,6 +1,6 @@
 // Import stuff  from core
 import { Server } from "./core/server.js";
-import { Router } from "./core/router.js";
+import { ApiRouter } from "./core/api-router.js";
 import { PageRouter } from "./core/page-router.js";
 import { HttpRequest } from "./core/request.js";
 import { HttpResponse } from "./core/response.js";
@@ -20,7 +20,7 @@ import type {
 
 export class Burger {
   private server: Server;
-  private router?: Router;
+  private apiRouter?: ApiRouter;
   private pageRouter?: PageRouter;
   private globalMiddleware: Middleware[] = [];
 
@@ -37,7 +37,7 @@ export class Burger {
     this.server = new Server(options);
     // Initialize API router
     if (options.apiDir) {
-      this.router = new Router(options.apiDir, "api");
+      this.apiRouter = new ApiRouter(options.apiDir, "api");
     }
 
     // Initialize page router
@@ -77,9 +77,9 @@ export class Burger {
       });
     }
 
-    if (this.router) {
+    if (this.apiRouter) {
       // Load API routes
-      await this.router.loadRoutes();
+      await this.apiRouter.loadRoutes();
 
       // Start the server
       this.server.start(
@@ -96,9 +96,9 @@ export class Burger {
 
           // Check if the request is for /openapi.json
           if (url.pathname === "/openapi.json") {
-            if (this.router) {
+            if (this.apiRouter) {
               // Generate OpenAPI document
-              const doc = generateOpenAPIDocument(this.router, this.options);
+              const doc = generateOpenAPIDocument(this.apiRouter, this.options);
               // Return it as JSON
               return response.json(doc);
             } else {
@@ -115,7 +115,7 @@ export class Burger {
           }
 
           // Get the route and params for the current request
-          const { route, params } = this.router!.resolve(req);
+          const { route, params } = this.apiRouter!.resolve(req);
 
           if (!route) {
             // Return a 404 if no route is found

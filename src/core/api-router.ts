@@ -9,38 +9,63 @@ import { cleanPrefix, normalizePath } from "../utils/index.js";
 import type { RequestHandler, RouteDefinition } from "../types/index.js";
 
 /**
- * Router class for handling file-based routing.
+ * Supported HTTP methods
+ */
+const HTTP_METHODS = [
+  "GET",
+  "POST",
+  "PUT",
+  "DELETE",
+  "PATCH",
+  "HEAD",
+  "OPTIONS",
+];
+
+/**
+ * ApiRouter class for handling file-based routing.
  * Loads routes from a directory structure and matches requests to the appropriate route handlers.
  * Supports dynamic segments (e.g., [id]) and HTTP method handlers.
  * Routes are sorted to prioritize static routes over dynamic ones to prevent overlapping route issues.
  */
-export class Router {
+export class ApiRouter {
   /** Array of loaded route definitions */
   public routes: RouteDefinition[] = [];
 
   /**
-   * Constructor for the Router class.
+   * Constructor for the ApiRouter class.
    * @param routesDir The directory path where route modules are located.
    * @param prefix Optional prefix to prepend to all routes (e.g., "api" becomes "/api/...").
    */
-  constructor(private routesDir: string, private prefix: string = "") {}
+  constructor(private routesDir: string, private prefix: string = "") {
+    if (!routesDir) {
+      throw new Error("Routes directory path is required");
+    }
+  }
 
   /**
    * Loads route modules from the specified directory and adds them to the routes array.
    * After loading, sorts the routes to prioritize static routes over dynamic ones based on specificity.
    * @returns A promise that resolves when all route modules have been loaded and sorted.
+   * @throws Error if the routes directory doesn't exist or can't be accessed
    */
   public async loadRoutes(): Promise<void> {
-    this.routes = [];
-    await this.scanDirectory(this.routesDir);
-    // Sort routes to ensure static routes are matched before dynamic ones
-    this.routes.sort((a, b) => this.compareRoutes(a, b));
+    try {
+      this.routes = [];
+      await this.scanDirectory(this.routesDir);
+      // Sort routes to ensure static routes are matched before dynamic ones
+      this.routes.sort((a, b) => this.compareRoutes(a, b));
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to load routes: ${errorMessage}`);
+    }
   }
 
   /**
    * Recursively scans the directory for route modules and adds them to the routes array.
    * @param dir The current directory to scan.
    * @param basePath The base path for constructing the route path.
+   * @throws Error if multiple dynamic folders are found at the same level or if directory access fails
    */
   private async scanDirectory(
     dir: string,
@@ -49,47 +74,72 @@ export class Router {
     // Track if a dynamic folder has been found at this directory level
     let dynamicFolderFound = false;
 
-    const entries = readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const entryPath = path.join(dir, entry.name);
-      const relativePath = path.join(basePath, entry.name);
+    try {
+      const entries = readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const entryPath = path.join(dir, entry.name);
+        const relativePath = path.join(basePath, entry.name);
 
-      if (entry.isDirectory()) {
-        // Handle dynamic directories (e.g., [id])
-        if (entry.name.startsWith("[") && entry.name.endsWith("]")) {
-          if (dynamicFolderFound) {
-            throw new Error(
-              `Multiple dynamic route folders found in the same directory: '${entry.name}' conflicts with another dynamic folder.`
-            );
+        if (entry.isDirectory()) {
+          // Handle dynamic directories (e.g., [id])
+          if (entry.name.startsWith("[") && entry.name.endsWith("]")) {
+            if (dynamicFolderFound) {
+              throw new Error(
+                `Multiple dynamic route folders found in the same directory: '${entry.name}' conflicts with another dynamic folder in '${dir}'.`
+              );
+            }
+            dynamicFolderFound = true;
           }
-          dynamicFolderFound = true;
+          await this.scanDirectory(entryPath, relativePath);
+        } else if (entry.isFile() && entry.name === "route.ts") {
+          await this.loadRouteModule(entryPath, relativePath);
         }
-        await this.scanDirectory(entryPath, relativePath);
-      } else if (entry.isFile() && entry.name === "route.ts") {
-        // Convert file path to route path and load the module
-        const routePath = this.convertFilePathToRoute(relativePath);
-        const modulePath = path.resolve(entryPath);
-        const routeModule = await import(modulePath);
-
-        // Collect HTTP method handlers from the module
-        const handlers: { [method: string]: RequestHandler } = {};
-        const methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"];
-        for (const method of methods) {
-          if (typeof routeModule[method] === "function") {
-            handlers[method] = routeModule[method];
-          }
-        }
-
-        // Create route definition
-        const routeDef: RouteDefinition = {
-          path: routePath,
-          handlers,
-          middleware: routeModule.middleware,
-          schema: routeModule.schema,
-          openapi: routeModule.openapi,
-        };
-        this.routes.push(routeDef);
       }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error; // Re-throw specific errors we created
+      }
+      throw new Error(`Failed to scan directory '${dir}': ${String(error)}`);
+    }
+  }
+
+  /**
+   * Loads a route module and adds it to the routes array
+   * @param entryPath Full path to the route file
+   * @param relativePath Relative path used to construct the route
+   */
+  private async loadRouteModule(
+    entryPath: string,
+    relativePath: string
+  ): Promise<void> {
+    try {
+      // Convert file path to route path and load the module
+      const routePath = this.convertFilePathToRoute(relativePath);
+      const modulePath = path.resolve(entryPath);
+      const routeModule = await import(modulePath);
+
+      // Collect HTTP method handlers from the module
+      const handlers: { [method: string]: RequestHandler } = {};
+
+      for (const method of HTTP_METHODS) {
+        if (typeof routeModule[method] === "function") {
+          handlers[method] = routeModule[method];
+        }
+      }
+
+      // Create route definition
+      const routeDef: RouteDefinition = {
+        path: routePath,
+        handlers,
+        middleware: routeModule.middleware,
+        schema: routeModule.schema,
+        openapi: routeModule.openapi,
+      };
+      this.routes.push(routeDef);
+    } catch (error) {
+      throw new Error(
+        `Failed to load route module '${entryPath}': ${String(error)}`
+      );
     }
   }
 
@@ -150,17 +200,22 @@ export class Router {
     route?: RouteDefinition;
     params: Record<string, string>;
   } {
-    const url = new URL(request.url);
-    const reqPath = normalizePath(url.pathname);
-    const method = request.method.toUpperCase();
+    try {
+      const url = new URL(request.url);
+      const reqPath = normalizePath(url.pathname);
+      const method = request.method.toUpperCase();
 
-    for (const route of this.routes) {
-      const match = this.matchRoute(reqPath, route.path);
-      if (match && route.handlers[method]) {
-        return { route, params: match };
+      for (const route of this.routes) {
+        const match = this.matchRoute(reqPath, route.path);
+        if (match && route.handlers[method]) {
+          return { route, params: match };
+        }
       }
+      return { params: {} };
+    } catch (error) {
+      // Return no match in case of URL parsing errors
+      return { params: {} };
     }
-    return { params: {} };
   }
 
   /**
@@ -187,7 +242,7 @@ export class Router {
 
       if (rSegment.startsWith(":")) {
         const paramName = rSegment.slice(1);
-        params[paramName] = reqSegment;
+        params[paramName] = decodeURIComponent(reqSegment);
       } else if (rSegment !== reqSegment) {
         return null;
       }

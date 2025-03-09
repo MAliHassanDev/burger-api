@@ -1,4 +1,3 @@
-import type { HTMLBundle } from "bun";
 import { z } from "zod";
 
 export interface ServerOptions {

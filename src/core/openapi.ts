@@ -1,7 +1,7 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 // Import types
-import type { Router } from "./router.js";
+import type { ApiRouter } from "./api-router.js";
 import type { ServerOptions } from "../types/index.js";
 
 /**
@@ -87,7 +87,7 @@ function convertPathForOpenAPI(routePath: string): string {
  * @returns The OpenAPI document as a JavaScript object.
  */
 export function generateOpenAPIDocument(
-  router: Router,
+  router: ApiRouter,
   options: ServerOptions
 ) {
   const openapiDoc = {
