@@ -25,15 +25,21 @@ export class Server {
   }
 
   /**
-   * Starts the server with the given port, handler, and callback.
+   * Starts the server with the given routes, handler, port, and callback.
+   * @param routes - The routes to be used by the server.
+   * @param handler - The handler to be used by the server.
    * @param port - The port to listen on.
-   * @param handler - The request handler function.
-   * @param cb - The callback function to be called when the server starts.
+   * @param cb - An optional callback function to be called when the server starts.
    */
-  public start(port: number, handler: RequestHandler, cb?: () => void): void {
+  public start(
+    routes: any,
+    handler: RequestHandler,
+    port: number,
+    cb?: () => void
+  ): void {
     // Start Bun's native server using Bun.serve
     this.server = Bun.serve({
-      port,
+      routes,
       fetch: async (request: Request) => {
         try {
           // Wrap the native Request with HttpRequest to get a BurgerRequest
@@ -51,6 +57,7 @@ export class Server {
           return errorResponse(error, request, this.options.debug ?? false);
         }
       },
+      port,
     });
     if (cb) {
       cb();

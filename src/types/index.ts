@@ -1,3 +1,4 @@
+import type { HTMLBundle } from "bun";
 import { z } from "zod";
 
 export interface ServerOptions {
@@ -30,11 +31,6 @@ export interface ServerOptions {
    * Global middleware to be executed before each request.
    */
   globalMiddleware?: Middleware[];
-
-  /**
-   * The templating engine to use for rendering HTML templates.
-   */
-  templatingEngine?: TemplatingEngine;
 
   /**
    * The version of the API. This is an optional property that can be used
@@ -283,7 +279,8 @@ export type openapi = {
   };
 };
 
-export type TemplatingEngine = (
-  templatePath: string,
-  props?: Record<string, any>
-) => Promise<string>;
+export interface PageDefinition {
+  path: string;
+  handler: RequestHandler;
+  middleware?: RequestHandler[];
+}

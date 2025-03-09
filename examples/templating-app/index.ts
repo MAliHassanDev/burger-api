@@ -10,6 +10,7 @@ const burger = new Burger({
   description:
     "This is a demo API demonstrating all available options in burger-api.",
   apiDir: setDir(__dirname, "api"),
+  pageDir: setDir(__dirname, "pages"),
   globalMiddleware: [globalLogger],
   version: "1.0.0",
   debug: true,

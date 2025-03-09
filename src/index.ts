@@ -1,6 +1,7 @@
 // Import stuff  from core
 import { Server } from "./core/server.js";
 import { Router } from "./core/router.js";
+import { PageRouter } from "./core/page-router.js";
 import { HttpRequest } from "./core/request.js";
 import { HttpResponse } from "./core/response.js";
 import { generateOpenAPIDocument } from "./core/openapi.js";
@@ -20,6 +21,7 @@ import type {
 export class Burger {
   private server: Server;
   private router?: Router;
+  private pageRouter?: PageRouter;
   private globalMiddleware: Middleware[] = [];
 
   /**
@@ -37,6 +39,12 @@ export class Burger {
     if (options.apiDir) {
       this.router = new Router(options.apiDir, "api");
     }
+
+    // Initialize page router
+    if (options.pageDir) {
+      this.pageRouter = new PageRouter(options.pageDir, "");
+    }
+
     // Add global middleware
     if (options.globalMiddleware) {
       options.globalMiddleware.forEach((mw) => this.addGlobalMiddleware(mw));
@@ -59,10 +67,23 @@ export class Burger {
    */
   async serve(port: number = 4000, cb?: () => void): Promise<void> {
     // File-based routing mode
+    const routes: { [key: string]: any } = {};
+
+    // Load Page routes
+    if (this.pageRouter) {
+      await this.pageRouter.loadPages();
+      this.pageRouter.pages.forEach((page) => {
+        routes[page.path] = page.handler;
+      });
+    }
+
     if (this.router) {
+      // Load API routes
       await this.router.loadRoutes();
+
+      // Start the server
       this.server.start(
-        port,
+        routes,
         async (req: Request) => {
           // Wrap the native request with helper methods
           const request = new HttpRequest(req) as unknown as BurgerRequest;
@@ -150,16 +171,18 @@ export class Burger {
           // Execute the full chain
           return await finalHandler();
         },
+        port,
         cb
       );
     } else {
       // Fallback to default handler if no router is provided
       this.server.start(
-        port,
+        null,
         async (_: Request) =>
           new Response("Hello from burger-api!", {
             headers: { "Content-Type": "text/plain" },
           }),
+        port,
         cb
       );
     }
@@ -176,4 +199,5 @@ export type {
   BurgerRequest,
   BurgerResponse,
   Middleware,
+  openapi,
 } from "./types/index.js";
