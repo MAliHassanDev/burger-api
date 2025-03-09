@@ -3,19 +3,15 @@ import { readdirSync } from "fs";
 import * as path from "path";
 
 // Import utils
-import { cleanPrefix, normalizePath } from "../utils/index.js";
+import {
+  cleanPrefix,
+  normalizePath,
+  compareRoutes,
+  ROUTE_CONSTANTS,
+} from "../utils/index.js";
 
 // Import types
 import type { PageDefinition } from "../types/index.js";
-
-// Constants
-const SUPPORTED_EXTENSIONS = [".tsx", ".html"];
-const INDEX_FILES = ["index.tsx", "index.html"];
-const DYNAMIC_SEGMENT_PREFIX = ":";
-const DYNAMIC_FOLDER_START = "[";
-const DYNAMIC_FOLDER_END = "]";
-const GROUPING_FOLDER_START = "(";
-const GROUPING_FOLDER_END = ")";
 
 /**
  * PageRouter class for handling file-based page routing.
@@ -57,7 +53,7 @@ export class PageRouter {
     try {
       await this.scanDirectory(this.pagesDir);
       // Sort pages to ensure static routes are matched before dynamic ones
-      this.pages.sort((a, b) => this.compareRoutes(a, b));
+      this.pages.sort((a, b) => compareRoutes(a, b));
       console.log(`Successfully loaded ${this.pages.length} pages`);
     } catch (error) {
       console.error("Failed to load pages:", error);
@@ -90,8 +86,8 @@ export class PageRouter {
         if (entry.isDirectory()) {
           // Handle dynamic directories (e.g., [id])
           if (
-            entry.name.startsWith(DYNAMIC_FOLDER_START) &&
-            entry.name.endsWith(DYNAMIC_FOLDER_END)
+            entry.name.startsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_START) &&
+            entry.name.endsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_END)
           ) {
             if (dynamicFolderFound) {
               throw new Error(
@@ -103,7 +99,9 @@ export class PageRouter {
           await this.scanDirectory(entryPath, relativePath);
         } else if (
           entry.isFile() &&
-          SUPPORTED_EXTENSIONS.some((ext) => entry.name.endsWith(ext))
+          ROUTE_CONSTANTS.SUPPORTED_PAGE_EXTENSIONS.some((ext) =>
+            entry.name.endsWith(ext)
+          )
         ) {
           // Convert file path to route path and load the module
           const routePath = this.convertFilePathToRoute(relativePath);
@@ -171,18 +169,18 @@ export class PageRouter {
 
       // Skip grouping segments (e.g., (group))
       if (
-        segment.startsWith(GROUPING_FOLDER_START) &&
-        segment.endsWith(GROUPING_FOLDER_END)
+        segment.startsWith(ROUTE_CONSTANTS.GROUPING_FOLDER_START) &&
+        segment.endsWith(ROUTE_CONSTANTS.GROUPING_FOLDER_END)
       )
         continue;
 
       // Convert dynamic segments from [param] to :param
       if (
-        segment.startsWith(DYNAMIC_FOLDER_START) &&
-        segment.endsWith(DYNAMIC_FOLDER_END)
+        segment.startsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_START) &&
+        segment.endsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_END)
       ) {
         const param = segment.slice(1, -1);
-        resultSegments.push(DYNAMIC_SEGMENT_PREFIX + param);
+        resultSegments.push(ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX + param);
       } else {
         resultSegments.push(segment);
       }
@@ -219,7 +217,7 @@ export class PageRouter {
       const lastSegment = pathSegments[pathSegments.length - 1];
 
       // Check if the last segment is an index file
-      if (INDEX_FILES.includes(lastSegment)) {
+      if (ROUTE_CONSTANTS.PAGE_INDEX_FILES.includes(lastSegment)) {
         // Remove the last segment for index files
         pathSegments.pop();
       } else {
@@ -289,42 +287,15 @@ export class PageRouter {
       const pSegment = pageSegments[i];
       const reqSegment = reqSegments[i];
 
-      if (pSegment.startsWith(DYNAMIC_SEGMENT_PREFIX)) {
-        const paramName = pSegment.slice(DYNAMIC_SEGMENT_PREFIX.length);
+      if (pSegment.startsWith(ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX)) {
+        const paramName = pSegment.slice(
+          ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX.length
+        );
         params[paramName] = reqSegment;
       } else if (pSegment !== reqSegment) {
         return null;
       }
     }
     return params;
-  }
-
-  /**
-   * Calculates the specificity of a page path based on the number of static segments.
-   * Static segments increase the score, while dynamic segments (:param) do not.
-   * @param path The page path to evaluate.
-   * @returns The specificity score (higher means more static segments).
-   */
-  private getRouteSpecificity(path: string): number {
-    const segments = path.split("/").filter(Boolean);
-    return segments.reduce((score, segment) => {
-      return segment.startsWith(DYNAMIC_SEGMENT_PREFIX) ? score : score + 1;
-    }, 0);
-  }
-
-  /**
-   * Compares two pages for sorting, prioritizing those with higher specificity (more static segments).
-   * If specificity is equal, sorts alphabetically by path.
-   * @param a The first page to compare.
-   * @param b The second page to compare.
-   * @returns Negative if a comes before b, positive if b comes before a, zero if equal.
-   */
-  private compareRoutes(a: PageDefinition, b: PageDefinition): number {
-    const aSpecificity = this.getRouteSpecificity(a.path);
-    const bSpecificity = this.getRouteSpecificity(b.path);
-
-    if (aSpecificity > bSpecificity) return -1;
-    if (aSpecificity < bSpecificity) return 1;
-    return a.path.localeCompare(b.path);
   }
 }

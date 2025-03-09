@@ -3,23 +3,16 @@ import { readdirSync } from "fs";
 import * as path from "path";
 
 // Import utils
-import { cleanPrefix, normalizePath } from "../utils/index.js";
+import {
+  cleanPrefix,
+  normalizePath,
+  compareRoutes,
+  ROUTE_CONSTANTS,
+  HTTP_METHODS,
+} from "../utils/index.js";
 
 // Import types
 import type { RequestHandler, RouteDefinition } from "../types/index.js";
-
-/**
- * Supported HTTP methods
- */
-const HTTP_METHODS = [
-  "GET",
-  "POST",
-  "PUT",
-  "DELETE",
-  "PATCH",
-  "HEAD",
-  "OPTIONS",
-];
 
 /**
  * ApiRouter class for handling file-based routing.
@@ -53,7 +46,7 @@ export class ApiRouter {
       this.routes = [];
       await this.scanDirectory(this.routesDir);
       // Sort routes to ensure static routes are matched before dynamic ones
-      this.routes.sort((a, b) => this.compareRoutes(a, b));
+      this.routes.sort((a, b) => compareRoutes(a, b));
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -82,7 +75,10 @@ export class ApiRouter {
 
         if (entry.isDirectory()) {
           // Handle dynamic directories (e.g., [id])
-          if (entry.name.startsWith("[") && entry.name.endsWith("]")) {
+          if (
+            entry.name.startsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_START) &&
+            entry.name.endsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_END)
+          ) {
             if (dynamicFolderFound) {
               throw new Error(
                 `Multiple dynamic route folders found in the same directory: '${entry.name}' conflicts with another dynamic folder in '${dir}'.`
@@ -163,12 +159,19 @@ export class ApiRouter {
       if (!segment) continue; // Skip empty segments
 
       // Skip grouping segments (e.g., (group))
-      if (segment.startsWith("(") && segment.endsWith(")")) continue;
+      if (
+        segment.startsWith(ROUTE_CONSTANTS.GROUPING_FOLDER_START) &&
+        segment.endsWith(ROUTE_CONSTANTS.GROUPING_FOLDER_END)
+      )
+        continue;
 
       // Convert dynamic segments from [param] to :param
-      if (segment.startsWith("[") && segment.endsWith("]")) {
+      if (
+        segment.startsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_START) &&
+        segment.endsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_END)
+      ) {
         const param = segment.slice(1, -1);
-        resultSegments.push(":" + param);
+        resultSegments.push(ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX + param);
       } else {
         resultSegments.push(segment);
       }
@@ -240,7 +243,7 @@ export class ApiRouter {
       const rSegment = routeSegments[i];
       const reqSegment = reqSegments[i];
 
-      if (rSegment.startsWith(":")) {
+      if (rSegment.startsWith(ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX)) {
         const paramName = rSegment.slice(1);
         params[paramName] = decodeURIComponent(reqSegment);
       } else if (rSegment !== reqSegment) {
@@ -248,34 +251,5 @@ export class ApiRouter {
       }
     }
     return params;
-  }
-
-  /**
-   * Calculates the specificity of a route path based on the number of static segments.
-   * Static segments increase the score, while dynamic segments (:param) do not.
-   * @param path The route path to evaluate.
-   * @returns The specificity score (higher means more static segments).
-   */
-  private getRouteSpecificity(path: string): number {
-    const segments = path.split("/").filter(Boolean);
-    return segments.reduce((score, segment) => {
-      return segment.startsWith(":") ? score : score + 1;
-    }, 0);
-  }
-
-  /**
-   * Compares two routes for sorting, prioritizing those with higher specificity (more static segments).
-   * If specificity is equal, sorts alphabetically by path.
-   * @param a The first route to compare.
-   * @param b The second route to compare.
-   * @returns Negative if a comes before b, positive if b comes before a, zero if equal.
-   */
-  private compareRoutes(a: RouteDefinition, b: RouteDefinition): number {
-    const aSpecificity = this.getRouteSpecificity(a.path);
-    const bSpecificity = this.getRouteSpecificity(b.path);
-
-    if (aSpecificity > bSpecificity) return -1;
-    if (aSpecificity < bSpecificity) return 1;
-    return a.path.localeCompare(b.path);
   }
 }

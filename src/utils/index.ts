@@ -1,5 +1,13 @@
 import { resolve } from "path";
 
+// Export constants
+export {
+  ROUTE_CONSTANTS,
+  HTTP_METHODS,
+  compareRoutes,
+  getRouteSpecificity,
+} from "./routing.js";
+
 /**
  * Resolves the given path to the specified directory.
  * @param directory the directory to resolve to
