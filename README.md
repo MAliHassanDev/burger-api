@@ -4,6 +4,28 @@
 
 **This project is under active development and should not be used in production yet.**
 
+## 📚 Table of Contents
+
+- [Overview](#-overview)
+- [Features](#-features)
+  - [Core Features](#core-features)
+- [Release Notes](#-release-notes)
+  - [Version 0.1.0](#version-010)
+  - [Version 0.0.39](#version-0039)
+- [What's Coming Next](#-whats-coming-next)
+- [Installation](#-installation)
+- [How to Use burger-api](#-how-to-use-burger-api)
+  - [Basic Usage Example](#basic-usage-example)
+  - [Project Structure](#recommended-project-structure)
+  - [Implementation Examples](#example-implementation)
+  - [File-Based Routing](#file-based-routing-examples)
+  - [Page Directory Usage](#page-directory-structure)
+  - [Route Examples](#route-file-example)
+- [API Documentation](#api-documentation-endpoints)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [FAQs & Resources](#-faqs--additional-resources)
+
 ## 🚀 Overview
 
 burger-api is built to offer a robust developer experience through:
@@ -65,15 +87,40 @@ burger-api is built to offer a robust developer experience through:
 - 🔍 **Swagger UI Integration:**  
   Provides a `/docs` endpoint serving an interactive Swagger UI that reads from `/openapi.json`.
 
+## 📣 Release Notes
+
+### Version 0.1.0
+
+- 🎨 **Static Page Serving:**
+  - Basic support for serving static `.html` files
+  - File-based routing for pages
+  - Support for route grouping with `(group)` syntax
+  - Support for dynamic route with `[slug]` syntax
+
+### Version 0.0.39
+
+- 🚀 Initial release with core API features
+- ⚡ Bun-native HTTP server implementation
+- 📁 File-based API routing
+- ✅ Zod schema validation
+- 📚 OpenAPI/Swagger integration
+- 🔄 Middleware system
+
 ## 🎯 What's Coming Next?
 
-We're enhancing burger-api to make it even more powerful! While our core focus remains on building fast, type-safe APIs, we're adding the ability to serve simple pages when needed:
+We're actively enhancing burger-api with powerful new features:
 
-### 🎨 Simple Page Serving (Coming Soon!)
-- Optional page serving capability for simple views
-- Perfect for API documentation, admin panels, or simple dashboards
-- Not meant to replace full-stack frameworks like Next.js
-- For complex frontend applications, we recommend using dedicated frontend frameworks
+### 🎨 Page Serving Enhancements (In Development)
+
+- 🔥 **TSX Support:** Adding React/TSX rendering capabilities
+- 🔐 **Global Middleware:** Applies to all routes for tasks like logging and authentication.
+- 🔐 **Page-Specific Middleware:** Defined in individual route files for tailored processing.
+- 🛠️ **Advanced Middleware:** More built-in middleware for common use cases:
+  - CORS handling
+  - Rate limiting
+  - Request logging
+  - Security headers
+- 🎯 **Performance Optimizations:** Further leveraging Bun's capabilities for faster page serving
 
 Stay tuned for updates as we continue to build and improve burger-api! We're committed to making it the best API framework for Bun.js.
 
@@ -114,6 +161,7 @@ burger.serve(4000, (port) => {
 ```
 
 The `debug` option enables:
+
 - 🔍 Interactive stack trace page at when errors occur
   - Shows detailed error information
   - Displays the full stack trace
@@ -159,16 +207,22 @@ my-api/
 Here's how to implement this structure:
 
 1. **Global Middleware** (`src/middleware/global/logger.ts`):
+
 ```ts
 import type { BurgerRequest, BurgerResponse } from "burger-api";
 
-export const logger = async (req: BurgerRequest, res: BurgerResponse, next: () => Promise<Response>) => {
+export const logger = async (
+  req: BurgerRequest,
+  res: BurgerResponse,
+  next: () => Promise<Response>
+) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   return next();
 };
 ```
 
 2. **Route-Specific Middleware** (`src/middleware/routes/products.ts`):
+
 ```ts
 import type { BurgerRequest, BurgerResponse } from "burger-api";
 
@@ -183,6 +237,7 @@ export const validateProductAccess = async (
 ```
 
 3. **Schemas** (`src/schemas/product.ts`):
+
 ```ts
 import { z } from "zod";
 
@@ -201,6 +256,7 @@ export const productSchema = {
 ```
 
 4. **Route File** (`src/api/products/route.ts`):
+
 ```ts
 import type { BurgerRequest, BurgerResponse } from "burger-api";
 import { validateProductAccess } from "../../middleware/routes/products";
@@ -227,6 +283,7 @@ export async function POST(req: BurgerRequest, res: BurgerResponse) {
 ```
 
 5. **Main Application** (`src/index.ts`):
+
 ```ts
 import { Burger } from "burger-api";
 import { logger } from "./middleware/global/logger";
@@ -245,6 +302,7 @@ burger.serve(4000, (port) => {
 ```
 
 This structure provides several benefits:
+
 - 🎯 Clear separation of concerns
 - 📁 Easy to find and maintain code
 - 🔄 Reusable components
@@ -264,6 +322,63 @@ This structure provides several benefits:
   └── [id]/
       └── route.ts     // Handles /api/product/:id
   ```
+
+### **Page Directory Structure**
+
+burger-api supports serving static pages alongside your API routes. Here's how to use the `pageDir` feature:
+
+```ts
+const burger = new Burger({
+  title: "My Custom API",
+  description: "Custom API with auto-generated docs and validation",
+  apiDir: "api",
+  pageDir: "pages", // Enable page serving from the pages directory
+  globalMiddleware: [globalLogger],
+  version: "1.0.0",
+});
+```
+
+#### **Page Directory Structure Example:**
+
+```
+my-api/
+├── src/
+│   ├── pages/                  # Pages directory
+│   │   ├── index.html         # Home page (/)
+│   │   ├── about.html         # About page (/about)
+│   │   └── products/
+│   │       ├── index.html     # Products list (/products)
+│   │       └── [id]/          # Dynamic product pages
+│   │           └── index.html # Single product (/products/123)
+│   └── api/                   # Your API routes
+```
+
+#### **Page Routing Features:**
+
+- 📄 **Index Pages:** Files named `index.html` serve as directory index pages
+- 🔄 **Clean URLs:**
+  - `/pages/about.html` → `/about`
+- 📁 **Dynamic Routes:** Use `[param]` syntax in folder names
+  - `/pages/products/[id]/index.html` → `/products/:id`
+- 🎯 **Route Grouping:** Use `(group)` syntax for logical grouping
+  - `/pages/(auth)/login.html` → `/login`
+  - `/pages/(auth)/register.html` → `/register`
+
+#### **Example Page Structure:**
+
+```html
+<!-- pages/products/[id]/index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Product Details</title>
+  </head>
+  <body>
+    <h1>Product Details</h1>
+    <!-- Content here -->
+  </body>
+</html>
+```
 
 ### **Route File Example**
 

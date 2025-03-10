@@ -1,6 +1,6 @@
 {
   "name": "burger-api",
-  "version": "0.0.39",
+  "version": "0.1.0",
   "author": "Isfhan Ahmed",
   "type": "module",
   "module": "dist/src/index.js",
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --project tsconfig.build.json",
     "test": "bun test",
-    "dev": "bun run examples/native-server/index.ts"
+    "dev": "bun run examples/file-base-static-page-routing-app/index.ts"
   },
   "keywords": [
     "burger-api",
@@ -68,15 +68,15 @@
   "bugs": {
     "url": "https://github.com/isfhan/burger-api/issues"
   },
-  "homepage": "https://github.com/isfhan/burger-api#readme",
+  "homepage": "https://burger-api-docs.vercel.app",
   "dependencies": {
     "zod": "^3.24.2",
-    "zod-to-json-schema": "^3.24.2"
+    "zod-to-json-schema": "^3.24.3"
   },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.7.3"
   }
 }
