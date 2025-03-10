@@ -65,48 +65,47 @@ burger-api/
   - Normalize URLs (trailing slashes, duplicate slashes, etc.).
   - Gracefully handle non-JSON payloads when a body schema is defined.
   - Enhance error logging with contextual information.
-- [ ] **Performance Optimizations:**
+- [✔] **Performance Optimizations:**
   - Fine-tune routing, middleware execution, and validation for minimal overhead.
-  - Leverage Bun’s native features for asynchronous operations and caching (e.g., caching OpenAPI docs).
-- [ ] **Documentation & Developer Guides:**
+- [✔] **Documentation & Developer Guides:**
   - Enhance inline documentation and examples.
   - Update and refine OpenAPI metadata generation for better documentation.
-- [ ] **Project Structure Refinements:**
+- [✔] **Project Structure Refinements:**
   - Further modularize components for easier maintenance and extensibility.
   - Provide sample projects/templates for common use cases.
 
 ## Phase 2: Developer Experience & Automation
 
 - [ ] **CLI Tooling:**  
-      Develop a CLI (`burger-api-cli`) for scaffolding projects and managing configurations.
+       Develop a CLI (`burger-api-cli`) for scaffolding projects and managing configurations.
 - [ ] **Hot Reloading/Watch Mode:**  
-      Implement file watching for automatic server reload on code changes.
+       Implement file watching for automatic server reload on code changes.
 - [✔] **Enhanced Error Handling:**  
   Build a robust, centralized error-handling mechanism.
 - [ ] **Improved Logging & Monitoring:**  
-      Provide built-in logging and request/response tracking for production debugging.
+       Provide built-in logging and request/response tracking for production debugging.
 
 ## Phase 3: Advanced Features & Optimizations
 
 - [ ] **File Upload Handling:**  
-      Leverage Bun's native file handling for efficient file uploads.
+       Leverage Bun's native file handling for efficient file uploads.
 - [ ] **Dynamic Route Grouping for Pages:**  
-      Support route grouping for better organization of page routes.
+       Support route grouping for better organization of page routes.
 - [ ] **Extensible Plugin System:**  
-      Architect a plugin system to allow third-party extensions (logging, caching, analytics).
+       Architect a plugin system to allow third-party extensions (logging, caching, analytics).
 
 ## Phase 4: Ecosystem & Extensibility
 
 - [ ] **Prebuilt Authentication Middleware:**  
-      Provide built-in authentication strategies (JWT, OAuth, API keys).
+       Provide built-in authentication strategies (JWT, OAuth, API keys).
 - [ ] **Testing Utilities & Documentation Examples:**  
-      Offer comprehensive tools and examples for testing and onboarding.
+       Offer comprehensive tools and examples for testing and onboarding.
 - [ ] **Optional ORM/Database Integration:**  
-      Explore integrations with lightweight ORMs for data persistence.
+       Explore integrations with lightweight ORMs for data persistence.
 - [ ] **Customizable Logging & Monitoring:**  
-      Build configurable options for advanced logging and production monitoring.
+       Build configurable options for advanced logging and production monitoring.
 - [ ] **API Versioning Support:**  
-      Implement strategies for managing and documenting API versioning.
+       Implement strategies for managing and documenting API versioning.
 
 ## Additional Considerations
 
