@@ -4,6 +4,28 @@
 
 **This project is under active development and should not be used in production yet.**
 
+## 📚 Table of Contents
+
+- [Overview](#-overview)
+- [Features](#-features)
+  - [Core Features](#core-features)
+- [Release Notes](#-release-notes)
+  - [Version 0.1.0](#version-010)
+  - [Version 0.0.39](#version-0039)
+- [What's Coming Next](#-whats-coming-next)
+- [Installation](#-installation)
+- [How to Use burger-api](#-how-to-use-burger-api)
+  - [Basic Usage Example](#basic-usage-example)
+  - [Project Structure](#recommended-project-structure)
+  - [Implementation Examples](#example-implementation)
+  - [File-Based Routing](#file-based-routing-examples)
+  - [Page Directory Usage](#page-directory-structure)
+  - [Route Examples](#route-file-example)
+- [API Documentation](#api-documentation-endpoints)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [FAQs & Resources](#-faqs--additional-resources)
+
 ## 🚀 Overview
 
 burger-api is built to offer a robust developer experience through:
@@ -300,6 +322,63 @@ This structure provides several benefits:
   └── [id]/
       └── route.ts     // Handles /api/product/:id
   ```
+
+### **Page Directory Structure**
+
+burger-api supports serving static pages alongside your API routes. Here's how to use the `pageDir` feature:
+
+```ts
+const burger = new Burger({
+  title: "My Custom API",
+  description: "Custom API with auto-generated docs and validation",
+  apiDir: "api",
+  pageDir: "pages", // Enable page serving from the pages directory
+  globalMiddleware: [globalLogger],
+  version: "1.0.0",
+});
+```
+
+#### **Page Directory Structure Example:**
+
+```
+my-api/
+├── src/
+│   ├── pages/                  # Pages directory
+│   │   ├── index.html         # Home page (/)
+│   │   ├── about.html         # About page (/about)
+│   │   └── products/
+│   │       ├── index.html     # Products list (/products)
+│   │       └── [id]/          # Dynamic product pages
+│   │           └── index.html # Single product (/products/123)
+│   └── api/                   # Your API routes
+```
+
+#### **Page Routing Features:**
+
+- 📄 **Index Pages:** Files named `index.html` serve as directory index pages
+- 🔄 **Clean URLs:**
+  - `/pages/about.html` → `/about`
+- 📁 **Dynamic Routes:** Use `[param]` syntax in folder names
+  - `/pages/products/[id]/index.html` → `/products/:id`
+- 🎯 **Route Grouping:** Use `(group)` syntax for logical grouping
+  - `/pages/(auth)/login.html` → `/login`
+  - `/pages/(auth)/register.html` → `/register`
+
+#### **Example Page Structure:**
+
+```html
+<!-- pages/products/[id]/index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Product Details</title>
+  </head>
+  <body>
+    <h1>Product Details</h1>
+    <!-- Content here -->
+  </body>
+</html>
+```
 
 ### **Route File Example**
 
