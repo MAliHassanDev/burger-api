@@ -47,14 +47,12 @@ export class PageRouter {
    * @returns A promise that resolves when all page modules have been loaded and sorted.
    */
   public async loadPages(): Promise<void> {
-    console.log(`Loading pages from directory: ${this.pagesDir}`);
+    // Clear the pages array
     this.pages = [];
-
     try {
       await this.scanDirectory(this.pagesDir);
       // Sort pages to ensure static routes are matched before dynamic ones
       this.pages.sort((a, b) => compareRoutes(a, b));
-      console.log(`Successfully loaded ${this.pages.length} pages`);
     } catch (error) {
       console.error("Failed to load pages:", error);
       throw new Error(
@@ -126,6 +124,13 @@ export class PageRouter {
             }
 
             // Create page definition
+            const pageDefWithSlash: PageDefinition = {
+              path: cleanedRoutePath + "/",
+              handler: pageModule.default,
+              middleware: pageModule.middleware,
+            };
+
+            // Create page definition
             const pageDef: PageDefinition = {
               path: cleanedRoutePath,
               handler: pageModule.default,
@@ -133,7 +138,7 @@ export class PageRouter {
             };
 
             // Add the page definition to the pages array
-            this.pages.push(pageDef);
+            this.pages.push(pageDefWithSlash, pageDef);
           } catch (importError) {
             console.error(
               `Failed to import module at ${modulePath}:`,
@@ -155,11 +160,6 @@ export class PageRouter {
    * @returns The converted route path string (before extension cleaning).
    */
   private convertFilePathToRoute(filePath: string): string {
-    // Remove the "page.ts" suffix
-    if (filePath.endsWith("page.ts")) {
-      filePath = filePath.slice(0, -"page.ts".length);
-    }
-
     // Split path into segments
     const segments = filePath.split(path.sep);
     const resultSegments: string[] = [];
