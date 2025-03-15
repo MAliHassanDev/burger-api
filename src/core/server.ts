@@ -35,7 +35,7 @@ export class Server {
    * @param cb - An optional callback function to be called when the server starts.
    */
   public start(
-    routes: any,
+    routes: { [key: string]: any } | undefined,
     handler: RequestHandler,
     port: number,
     cb?: () => void

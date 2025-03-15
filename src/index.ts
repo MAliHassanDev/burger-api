@@ -68,12 +68,16 @@ export class Burger {
     // File-based routing mode
     const routes: { [key: string]: any } = {};
 
-    // Load Page routes
+    // Handle page routes
     if (this.pageRouter) {
+      // Load Page routes
       await this.pageRouter.loadPages();
-      this.pageRouter.pages.forEach((page) => {
-        routes[page.path] = page.handler;
-      });
+      // If there are any page routes, add them to the routes object
+      if (this.pageRouter.pages.length > 0) {
+        this.pageRouter.pages.forEach((page) => {
+          routes[page.path] = page.handler;
+        });
+      }
     }
 
     if (this.apiRouter) {
@@ -167,11 +171,10 @@ export class Burger {
     } else {
       // Fallback to default handler if no router is provided
       this.server.start(
-        null,
-        async (_: BurgerRequest, res: BurgerResponse) =>
-          new Response("Hello from burger-api!", {
-            headers: { "Content-Type": "text/plain" },
-          }),
+        undefined,
+        async (_: BurgerRequest, res: BurgerResponse) => {
+          return res.status(200).json({ message: "Hello from burger-api!" });
+        },
         port,
         cb
       );
