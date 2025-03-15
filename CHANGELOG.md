@@ -1,6 +1,6 @@
 ## 📣 Release Notes
 
-### Version 0.1.3 (March 15, 2024)
+### Version 0.1.4 (March 15, 2024)
 
 -   🎨 **Code Quality & Standards:**
 
