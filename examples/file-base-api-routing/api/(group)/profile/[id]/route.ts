@@ -1,9 +1,6 @@
-import type { BurgerRequest, BurgerResponse } from "../../../../../../src";
+import type { BurgerRequest, BurgerResponse } from "@src/index";
 
-export async function GET(
-  req: BurgerRequest,
-  res: BurgerResponse,
-) {
+export async function GET(req: BurgerRequest, res: BurgerResponse) {
   const query = req.query;
 
   return res.json({

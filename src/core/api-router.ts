@@ -1,6 +1,6 @@
 // Import stuff from node
-import { readdirSync } from 'fs'
-import * as path from 'path'
+import { readdirSync } from "fs";
+import * as path from "path";
 
 // Import utils
 import {
@@ -9,14 +9,14 @@ import {
   compareRoutes,
   ROUTE_CONSTANTS,
   HTTP_METHODS,
-} from '@utils/index.js'
+} from "@utils/index.js";
 
 // Import types
 import type {
   Middleware,
   RequestHandler,
   RouteDefinition,
-} from '@burgerTypes/index.js'
+} from "@burgerTypes/index.js";
 
 /**
  * ApiRouter class for handling file-based routing.
@@ -26,16 +26,16 @@ import type {
  */
 export class ApiRouter {
   /** Array of loaded route definitions */
-  public routes: RouteDefinition[] = []
+  public routes: RouteDefinition[] = [];
 
   /**
    * Constructor for the ApiRouter class.
    * @param routesDir The directory path where route modules are located.
    * @param prefix Optional prefix to prepend to all routes (e.g., "api" becomes "/api/...").
    */
-  constructor(private routesDir: string, private prefix: string = '') {
+  constructor(private routesDir: string, private prefix: string = "") {
     if (!routesDir) {
-      throw new Error('Routes directory path is required')
+      throw new Error("Routes directory path is required");
     }
   }
 
@@ -47,14 +47,14 @@ export class ApiRouter {
    */
   public async loadRoutes(): Promise<void> {
     try {
-      this.routes = []
-      await this.scanDirectory(this.routesDir)
+      this.routes = [];
+      await this.scanDirectory(this.routesDir);
       // Sort routes to ensure static routes are matched before dynamic ones
-      this.routes.sort((a, b) => compareRoutes(a, b))
+      this.routes.sort((a, b) => compareRoutes(a, b));
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : String(error)
-      throw new Error(`Failed to load routes: ${errorMessage}`)
+        error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to load routes: ${errorMessage}`);
     }
   }
 
@@ -66,16 +66,16 @@ export class ApiRouter {
    */
   private async scanDirectory(
     dir: string,
-    basePath: string = ''
+    basePath: string = ""
   ): Promise<void> {
     // Track if a dynamic folder has been found at this directory level
-    let dynamicFolderFound = false
+    let dynamicFolderFound = false;
 
     try {
-      const entries = readdirSync(dir, { withFileTypes: true })
+      const entries = readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
-        const entryPath = path.join(dir, entry.name)
-        const relativePath = path.join(basePath, entry.name)
+        const entryPath = path.join(dir, entry.name);
+        const relativePath = path.join(basePath, entry.name);
 
         if (entry.isDirectory()) {
           // Handle dynamic directories (e.g., [id])
@@ -86,20 +86,20 @@ export class ApiRouter {
             if (dynamicFolderFound) {
               throw new Error(
                 `Multiple dynamic route folders found in the same directory: '${entry.name}' conflicts with another dynamic folder in '${dir}'.`
-              )
+              );
             }
-            dynamicFolderFound = true
+            dynamicFolderFound = true;
           }
-          await this.scanDirectory(entryPath, relativePath)
-        } else if (entry.isFile() && entry.name === 'route.ts') {
-          await this.loadRouteModule(entryPath, relativePath)
+          await this.scanDirectory(entryPath, relativePath);
+        } else if (entry.isFile() && entry.name === "route.ts") {
+          await this.loadRouteModule(entryPath, relativePath);
         }
       }
     } catch (error) {
       if (error instanceof Error) {
-        throw error // Re-throw specific errors we created
+        throw error; // Re-throw specific errors we created
       }
-      throw new Error(`Failed to scan directory '${dir}': ${String(error)}`)
+      throw new Error(`Failed to scan directory '${dir}': ${String(error)}`);
     }
   }
 
@@ -114,16 +114,16 @@ export class ApiRouter {
   ): Promise<void> {
     try {
       // Convert file path to route path and load the module
-      const routePath = this.convertFilePathToRoute(relativePath)
-      const modulePath = path.resolve(entryPath)
-      const routeModule = await import(modulePath)
+      const routePath = this.convertFilePathToRoute(relativePath);
+      const modulePath = path.resolve(entryPath);
+      const routeModule = await import(modulePath);
 
       // Collect HTTP method handlers from the module
-      const handlers: { [method: string]: RequestHandler } = {}
+      const handlers: { [method: string]: RequestHandler } = {};
 
       for (const method of HTTP_METHODS) {
-        if (typeof routeModule[method] === 'function') {
-          handlers[method] = routeModule[method]
+        if (typeof routeModule[method] === "function") {
+          handlers[method] = routeModule[method];
         }
       }
 
@@ -134,13 +134,13 @@ export class ApiRouter {
         middleware: routeModule.middleware as Middleware[],
         schema: routeModule.schema,
         openapi: routeModule.openapi,
-      }
+      };
 
-      this.routes.push(routeDef)
+      this.routes.push(routeDef);
     } catch (error) {
       throw new Error(
         `Failed to load route module '${entryPath}': ${String(error)}`
-      )
+      );
     }
   }
 
@@ -152,51 +152,51 @@ export class ApiRouter {
    */
   private convertFilePathToRoute(filePath: string): string {
     // Remove the "route.ts" suffix
-    if (filePath.endsWith('route.ts')) {
-      filePath = filePath.slice(0, -'route.ts'.length)
+    if (filePath.endsWith("route.ts")) {
+      filePath = filePath.slice(0, -"route.ts".length);
     }
 
     // Split path into segments
-    const segments = filePath.split(path.sep)
-    const resultSegments: string[] = []
+    const segments = filePath.split(path.sep);
+    const resultSegments: string[] = [];
 
     for (let segment of segments) {
-      if (!segment) continue // Skip empty segments
+      if (!segment) continue; // Skip empty segments
 
       // Skip grouping segments (e.g., (group))
       if (
         segment.startsWith(ROUTE_CONSTANTS.GROUPING_FOLDER_START) &&
         segment.endsWith(ROUTE_CONSTANTS.GROUPING_FOLDER_END)
       )
-        continue
+        continue;
 
       // Convert dynamic segments from [param] to :param
       if (
         segment.startsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_START) &&
         segment.endsWith(ROUTE_CONSTANTS.DYNAMIC_FOLDER_END)
       ) {
-        const param = segment.slice(1, -1)
-        resultSegments.push(ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX + param)
+        const param = segment.slice(1, -1);
+        resultSegments.push(ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX + param);
       } else {
-        resultSegments.push(segment)
+        resultSegments.push(segment);
       }
     }
 
     // Construct the route with leading slash
-    let route = '/' + resultSegments.join('/')
+    let route = "/" + resultSegments.join("/");
 
     // Apply prefix if provided
     if (this.prefix) {
-      const cleanPrefixStr = cleanPrefix(this.prefix)
-      route = '/' + cleanPrefixStr + route
+      const cleanPrefixStr = cleanPrefix(this.prefix);
+      route = "/" + cleanPrefixStr + route;
     }
 
     // Remove trailing slash unless it's the root
-    if (route !== '/' && route.endsWith('/')) {
-      route = route.slice(0, -1)
+    if (route !== "/" && route.endsWith("/")) {
+      route = route.slice(0, -1);
     }
 
-    return route
+    return route;
   }
 
   /**
@@ -205,24 +205,24 @@ export class ApiRouter {
    * @returns An object containing the matched route and parameters, or an empty params object if no match.
    */
   public resolve(request: Request): {
-    route?: RouteDefinition
-    params: Record<string, string>
+    route?: RouteDefinition;
+    params: Record<string, string>;
   } {
     try {
-      const url = new URL(request.url)
-      const reqPath = normalizePath(url.pathname)
-      const method = request.method.toUpperCase()
+      const url = new URL(request.url);
+      const reqPath = normalizePath(url.pathname);
+      const method = request.method.toUpperCase();
 
       for (const route of this.routes) {
-        const match = this.matchRoute(reqPath, route.path)
+        const match = this.matchRoute(reqPath, route.path);
         if (match && route.handlers[method]) {
-          return { route, params: match }
+          return { route, params: match };
         }
       }
-      return { params: {} }
+      return { params: {} };
     } catch (error) {
       // Return no match in case of URL parsing errors
-      return { params: {} }
+      return { params: {} };
     }
   }
 
@@ -236,25 +236,25 @@ export class ApiRouter {
     requestPath: string,
     routePath: string
   ): Record<string, string> | null {
-    const reqSegments = requestPath.split('/').filter(Boolean)
-    const routeSegments = routePath.split('/').filter(Boolean)
+    const reqSegments = requestPath.split("/").filter(Boolean);
+    const routeSegments = routePath.split("/").filter(Boolean);
 
     if (reqSegments.length !== routeSegments.length) {
-      return null
+      return null;
     }
 
-    const params: Record<string, string> = {}
+    const params: Record<string, string> = {};
     for (let i = 0; i < reqSegments.length; i++) {
-      const rSegment = routeSegments[i]
-      const reqSegment = reqSegments[i]
+      const rSegment = routeSegments[i];
+      const reqSegment = reqSegments[i];
 
       if (rSegment.startsWith(ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX)) {
-        const paramName = rSegment.slice(1)
-        params[paramName] = decodeURIComponent(reqSegment)
+        const paramName = rSegment.slice(1);
+        params[paramName] = decodeURIComponent(reqSegment);
       } else if (rSegment !== reqSegment) {
-        return null
+        return null;
       }
     }
-    return params
+    return params;
   }
 }

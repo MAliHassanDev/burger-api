@@ -6,7 +6,7 @@ import type {
   BurgerRequest,
   BurgerResponse,
   BurgerNext,
-} from "../../../../src/types";
+} from "@burgerTypes/index";
 
 // OpenAPI Metadata
 // Developers can provide custom metadata to enrich the docs.

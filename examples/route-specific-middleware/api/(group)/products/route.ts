@@ -1,8 +1,4 @@
-import type {
-  BurgerRequest,
-  BurgerResponse,
-  BurgerNext,
-} from "../../../../../src";
+import type { BurgerRequest, BurgerResponse, BurgerNext } from "@src/index";
 
 // Route-specific middleware
 export const middleware = [

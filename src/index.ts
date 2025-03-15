@@ -1,14 +1,14 @@
 // Import stuff  from core
-import { Server } from '@core/server.js'
-import { ApiRouter } from '@core/api-router.js'
-import { PageRouter } from '@core/page-router.js'
-import { HttpRequest } from '@core/request.js'
-import { HttpResponse } from '@core/response.js'
-import { generateOpenAPIDocument } from '@core/openapi.js'
-import { swaggerHtml } from '@core/swagger-ui.js'
+import { Server } from "@core/server.js";
+import { ApiRouter } from "@core/api-router.js";
+import { PageRouter } from "@core/page-router.js";
+import { HttpRequest } from "@core/request.js";
+import { HttpResponse } from "@core/response.js";
+import { generateOpenAPIDocument } from "@core/openapi.js";
+import { swaggerHtml } from "@core/swagger-ui.js";
 
 // Import middleware
-import { createValidationMiddleware } from '@middleware/validator.js'
+import { createValidationMiddleware } from "@middleware/validator.js";
 
 // Import types
 import type {
@@ -16,13 +16,13 @@ import type {
   BurgerRequest,
   BurgerResponse,
   Middleware,
-} from '@burgerTypes/index'
+} from "@burgerTypes/index";
 
 export class Burger {
-  private server: Server
-  private apiRouter?: ApiRouter
-  private pageRouter?: PageRouter
-  private globalMiddleware: Middleware[] = []
+  private server: Server;
+  private apiRouter?: ApiRouter;
+  private pageRouter?: PageRouter;
+  private globalMiddleware: Middleware[] = [];
 
   /**
    * Constructor for the Burger class.
@@ -34,20 +34,20 @@ export class Burger {
    * - middleware: An array of global middleware functions.
    */
   constructor(private options: ServerOptions) {
-    this.server = new Server(options)
+    this.server = new Server(options);
     // Initialize API router
     if (options.apiDir) {
-      this.apiRouter = new ApiRouter(options.apiDir, 'api')
+      this.apiRouter = new ApiRouter(options.apiDir, "api");
     }
 
     // Initialize page router
     if (options.pageDir) {
-      this.pageRouter = new PageRouter(options.pageDir, '')
+      this.pageRouter = new PageRouter(options.pageDir, "");
     }
 
     // Add global middleware
     if (options.globalMiddleware) {
-      options.globalMiddleware.forEach((mw) => this.addGlobalMiddleware(mw))
+      options.globalMiddleware.forEach((mw) => this.addGlobalMiddleware(mw));
     }
   }
 
@@ -56,7 +56,7 @@ export class Burger {
    * @param mw - The middleware function to add.
    */
   addGlobalMiddleware(mw: Middleware) {
-    this.globalMiddleware.push(mw)
+    this.globalMiddleware.push(mw);
   }
 
   /**
@@ -67,70 +67,70 @@ export class Burger {
    */
   async serve(port: number = 4000, cb?: () => void): Promise<void> {
     // File-based routing mode
-    const routes: { [key: string]: any } = {}
+    const routes: { [key: string]: any } = {};
 
     // Load Page routes
     if (this.pageRouter) {
-      await this.pageRouter.loadPages()
+      await this.pageRouter.loadPages();
       this.pageRouter.pages.forEach((page) => {
-        routes[page.path] = page.handler
-      })
+        routes[page.path] = page.handler;
+      });
     }
 
     if (this.apiRouter) {
       // Load API routes
-      await this.apiRouter.loadRoutes()
+      await this.apiRouter.loadRoutes();
 
       // Start the server
       this.server.start(
         routes,
         async (req: Request) => {
           // Wrap the native request with helper methods
-          const request = new HttpRequest(req) as unknown as BurgerRequest
+          const request = new HttpRequest(req) as unknown as BurgerRequest;
 
           // Create a new instance of BurgerResponse for the handler
-          const response = new HttpResponse() as unknown as BurgerResponse
+          const response = new HttpResponse() as unknown as BurgerResponse;
 
           // Create URL object
-          const url = new URL(request.url)
+          const url = new URL(request.url);
 
           // Check if the request is for /openapi.json
-          if (url.pathname === '/openapi.json') {
+          if (url.pathname === "/openapi.json") {
             if (this.apiRouter) {
               // Generate OpenAPI document
-              const doc = generateOpenAPIDocument(this.apiRouter, this.options)
+              const doc = generateOpenAPIDocument(this.apiRouter, this.options);
               // Return it as JSON
-              return response.json(doc)
+              return response.json(doc);
             } else {
               // Return an error if router is not available
               return response
                 .status(500)
-                .json({ error: 'Router not available' })
+                .json({ error: "Router not available" });
             }
           }
 
           // Serve the Swagger UI at /docs
-          if (url.pathname === '/docs') {
-            return response.html(swaggerHtml)
+          if (url.pathname === "/docs") {
+            return response.html(swaggerHtml);
           }
 
           // Get the route and params for the current request
-          const { route, params } = this.apiRouter!.resolve(req)
+          const { route, params } = this.apiRouter!.resolve(req);
 
           if (!route) {
             // Return a 404 if no route is found
-            return response.status(404).json({ error: 'Route not found' })
+            return response.status(404).json({ error: "Route not found" });
           }
 
           // Add params to the request
-          request.params = params
+          request.params = params;
 
           // Get the handler for the current HTTP method
-          const method = req.method.toUpperCase()
-          const handler = route.handlers[method]
+          const method = req.method.toUpperCase();
+          const handler = route.handlers[method];
           if (!handler) {
             // Return a 405 if no handler is found
-            return response.status(405).json({ error: 'Method Not Allowed' })
+            return response.status(405).json({ error: "Method Not Allowed" });
           }
 
           /**
@@ -142,55 +142,55 @@ export class Burger {
            */
 
           // 1. Compose the Route-Specific Chain
-          let routeChain = async () => handler(request, response)
+          let routeChain = async () => handler(request, response);
           if (route.middleware && route.middleware.length > 0) {
             // Wrap route-specific middleware (in reverse order to preserve order of execution)
             for (const mw of route.middleware.slice().reverse()) {
-              const next = routeChain
-              routeChain = async () => mw(request, response, next)
+              const next = routeChain;
+              routeChain = async () => mw(request, response, next);
             }
           }
 
           // 2. Insert Validation Middleware (if a schema exists)
-          let composedChain = routeChain
+          let composedChain = routeChain;
           if (route.schema) {
-            const validationMw = createValidationMiddleware(route.schema)
+            const validationMw = createValidationMiddleware(route.schema);
             composedChain = async () =>
-              validationMw(request, response, routeChain)
+              validationMw(request, response, routeChain);
           }
 
           // 3. Wrap Global Middleware (in reverse order so that the first-added runs first)
-          let finalHandler = composedChain
+          let finalHandler = composedChain;
           if (this.globalMiddleware.length > 0) {
             for (const mw of this.globalMiddleware.slice().reverse()) {
-              const next = finalHandler
-              finalHandler = async () => mw(request, response, next)
+              const next = finalHandler;
+              finalHandler = async () => mw(request, response, next);
             }
           }
 
           // Execute the full chain
-          return await finalHandler()
+          return await finalHandler();
         },
         port,
         cb
-      )
+      );
     } else {
       // Fallback to default handler if no router is provided
       this.server.start(
         null,
         async (_: Request) =>
-          new Response('Hello from burger-api!', {
-            headers: { 'Content-Type': 'text/plain' },
+          new Response("Hello from burger-api!", {
+            headers: { "Content-Type": "text/plain" },
           }),
         port,
         cb
-      )
+      );
     }
   }
 }
 
 // Export utils
-export { setDir } from '@utils/index.js'
+export { setDir } from "@utils/index.js";
 
 // Export types
 export type {
@@ -201,4 +201,4 @@ export type {
   BurgerNext,
   Middleware,
   openapi,
-} from '@burgerTypes/index.js'
+} from "@burgerTypes/index.js";

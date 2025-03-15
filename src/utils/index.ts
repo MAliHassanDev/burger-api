@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import { resolve } from "path";
 
 // Export constants
 export {
@@ -6,7 +6,7 @@ export {
   HTTP_METHODS,
   compareRoutes,
   getRouteSpecificity,
-} from '@utils/routing.js'
+} from "@utils/routing.js";
 
 /**
  * Resolves the given path to the specified directory.
@@ -15,7 +15,7 @@ export {
  * @returns the resolved path
  */
 export function setDir(directory: string, path: string): string {
-  return resolve(directory, path)
+  return resolve(directory, path);
 }
 
 /**
@@ -25,14 +25,14 @@ export function setDir(directory: string, path: string): string {
  */
 export function cleanPrefix(prefix: string): string {
   // Remove all slashes from the beginning
-  while (prefix.startsWith('/')) {
-    prefix = prefix.slice(1)
+  while (prefix.startsWith("/")) {
+    prefix = prefix.slice(1);
   }
   // Remove all slashes from the end
-  while (prefix.endsWith('/')) {
-    prefix = prefix.slice(0, -1)
+  while (prefix.endsWith("/")) {
+    prefix = prefix.slice(0, -1);
   }
-  return prefix
+  return prefix;
 }
 
 /**
@@ -43,12 +43,12 @@ export function cleanPrefix(prefix: string): string {
  */
 export function normalizePath(path: string): string {
   // Replace multiple slashes with a single slash
-  let normalized = path.replace(/\/+/g, '/')
+  let normalized = path.replace(/\/+/g, "/");
 
   // Remove trailing slash if it's not the root
-  if (normalized.length > 1 && normalized.endsWith('/')) {
-    normalized = normalized.slice(0, -1)
+  if (normalized.length > 1 && normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
   }
 
-  return normalized
+  return normalized;
 }
