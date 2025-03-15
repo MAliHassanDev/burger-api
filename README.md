@@ -13,9 +13,7 @@
 - [Overview](#-overview)
 - [Features](#-features)
   - [Core Features](#core-features)
-- [Release Notes](#-release-notes)
-  - [Version 0.1.0](#version-010)
-  - [Version 0.0.39](#version-0039)
+- [Changelog](#-changelog)
 - [What's Coming Next](#-whats-coming-next)
 - [Installation](#-installation)
 - [How to Use burger-api](#-how-to-use-burger-api)
@@ -91,7 +89,9 @@ burger-api is built to offer a robust developer experience through:
 - 🔍 **Swagger UI Integration:**  
   Provides a `/docs` endpoint serving an interactive Swagger UI that reads from `/openapi.json`.
 
-## 📣 Release Notes
+## 📣 Changelog
+
+For detailed release notes, please refer to the [Changelog](changelogs.md) file.
 
 ### Version 0.1.0
 
@@ -141,27 +141,27 @@ bun add burger-api
 ### **Basic Usage Example**
 
 ```ts
-import { Burger } from "burger-api";
+import { Burger } from 'burger-api'
 
 // Global middleware example: a simple logger.
 const globalLogger = async (req, res, next) => {
-  console.log(`[Global Logger] ${req.method} ${req.url}`);
-  return next();
-};
+  console.log(`[Global Logger] ${req.method} ${req.url}`)
+  return next()
+}
 
 const burger = new Burger({
-  title: "My Custom API",
-  description: "Custom API with auto-generated docs and validation",
-  apiDir: "api",
+  title: 'My Custom API',
+  description: 'Custom API with auto-generated docs and validation',
+  apiDir: 'api',
   globalMiddleware: [globalLogger],
-  version: "1.0.0",
+  version: '1.0.0',
   debug: true, // Enable debug mode for detailed logging and stack trace page
-});
+})
 
 // Start the server on port 4000 with a callback
 burger.serve(4000, (port) => {
-  console.log(`Server is running on port ${port}`);
-});
+  console.log(`Server is running on port ${port}`)
+})
 ```
 
 The `debug` option enables:
@@ -213,22 +213,22 @@ Here's how to implement this structure:
 1. **Global Middleware** (`src/middleware/global/logger.ts`):
 
 ```ts
-import type { BurgerRequest, BurgerResponse, BurgerNext } from "burger-api";
+import type { BurgerRequest, BurgerResponse, BurgerNext } from 'burger-api'
 
 export const logger = async (
   req: BurgerRequest,
   res: BurgerResponse,
   next: BurgerNext
 ) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  return next();
-};
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`)
+  return next()
+}
 ```
 
 2. **Route-Specific Middleware** (`src/middleware/routes/products.ts`):
 
 ```ts
-import type { BurgerRequest, BurgerResponse, BurgerNext } from "burger-api";
+import type { BurgerRequest, BurgerResponse, BurgerNext } from 'burger-api'
 
 export const validateProductAccess = async (
   req: BurgerRequest,
@@ -236,14 +236,14 @@ export const validateProductAccess = async (
   next: BurgerNext
 ) => {
   // Your middleware logic here
-  return next();
-};
+  return next()
+}
 ```
 
 3. **Schemas** (`src/schemas/product.ts`):
 
 ```ts
-import { z } from "zod";
+import { z } from 'zod'
 
 export const productSchema = {
   create: z.object({
@@ -256,17 +256,17 @@ export const productSchema = {
     price: z.number().positive().optional(),
     description: z.string().optional(),
   }),
-};
+}
 ```
 
 4. **Route File** (`src/api/products/route.ts`):
 
 ```ts
-import type { BurgerRequest, BurgerResponse } from "burger-api";
-import { validateProductAccess } from "../../middleware/routes/products";
-import { productSchema } from "../../schemas/product";
+import type { BurgerRequest, BurgerResponse } from 'burger-api'
+import { validateProductAccess } from '../../middleware/routes/products'
+import { productSchema } from '../../schemas/product'
 
-export const middleware = [validateProductAccess];
+export const middleware = [validateProductAccess]
 export const schema = {
   post: {
     body: productSchema.create,
@@ -274,35 +274,35 @@ export const schema = {
   put: {
     body: productSchema.update,
   },
-};
+}
 
 export async function GET(req: BurgerRequest, res: BurgerResponse) {
-  return res.json({ message: "List of products" });
+  return res.json({ message: 'List of products' })
 }
 
 export async function POST(req: BurgerRequest, res: BurgerResponse) {
-  const body = req.validated?.body;
-  return res.json({ message: "Product created", data: body });
+  const body = req.validated?.body
+  return res.json({ message: 'Product created', data: body })
 }
 ```
 
 5. **Main Application** (`src/index.ts`):
 
 ```ts
-import { Burger } from "burger-api";
-import { logger } from "./middleware/global/logger";
+import { Burger } from 'burger-api'
+import { logger } from './middleware/global/logger'
 
 const burger = new Burger({
-  title: "Product API",
-  description: "API for managing products",
-  apiDir: "api",
+  title: 'Product API',
+  description: 'API for managing products',
+  apiDir: 'api',
   globalMiddleware: [logger],
-  version: "1.0.0",
-});
+  version: '1.0.0',
+})
 
 burger.serve(4000, (port) => {
-  console.log(`Server is running on port ${port}`);
-});
+  console.log(`Server is running on port ${port}`)
+})
 ```
 
 This structure provides several benefits:
@@ -333,13 +333,13 @@ burger-api supports serving static pages alongside your API routes. Here's how t
 
 ```ts
 const burger = new Burger({
-  title: "My Custom API",
-  description: "Custom API with auto-generated docs and validation",
-  apiDir: "api",
-  pageDir: "pages", // Enable page serving from the pages directory
+  title: 'My Custom API',
+  description: 'Custom API with auto-generated docs and validation',
+  apiDir: 'api',
+  pageDir: 'pages', // Enable page serving from the pages directory
   globalMiddleware: [globalLogger],
-  version: "1.0.0",
-});
+  version: '1.0.0',
+})
 ```
 
 #### **Page Directory Structure Example:**
@@ -391,26 +391,26 @@ Below is an example route file demonstrating schema validation, route-specific m
 ```ts
 // examples/demo/api/product/[id]/route.ts
 
-import { z } from "zod";
-import type { BurgerRequest, BurgerResponse, BurgerNext } from "burger-api";
+import { z } from 'zod'
+import type { BurgerRequest, BurgerResponse, BurgerNext } from 'burger-api'
 
 // OpenAPI metadata for this route
 export const openapi = {
   get: {
-    summary: "Get Product Details",
-    description: "Retrieves product details by product ID.",
-    tags: ["Product"],
-    operationId: "getProductDetails",
+    summary: 'Get Product Details',
+    description: 'Retrieves product details by product ID.',
+    tags: ['Product'],
+    operationId: 'getProductDetails',
   },
-};
+}
 
 // Validation Schemas for GET and POST requests
 export const schema = {
   get: {
     params: z.object({
       id: z.preprocess(
-        (val) => (typeof val === "string" ? parseInt(val, 10) : val),
-        z.number().min(1, "ID is required")
+        (val) => (typeof val === 'string' ? parseInt(val, 10) : val),
+        z.number().min(1, 'ID is required')
       ),
     }),
     query: z.object({
@@ -419,19 +419,19 @@ export const schema = {
   },
   post: {
     body: z.object({
-      name: z.string().min(1, "Name is required"),
-      price: z.number().positive("Price must be positive"),
+      name: z.string().min(1, 'Name is required'),
+      price: z.number().positive('Price must be positive'),
     }),
   },
-};
+}
 
 // Route-specific middleware
 export const middleware = [
   async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
-    console.log("[Product Middleware] Executing product route middleware");
-    return next();
+    console.log('[Product Middleware] Executing product route middleware')
+    return next()
   },
-];
+]
 
 // GET handler: returns product details
 export async function GET(
@@ -439,21 +439,21 @@ export async function GET(
   res: BurgerResponse,
   params: { id: number }
 ) {
-  console.log("[GET] Product route invoked");
-  const validatedParams = (req.validated?.params as { id: number }) || params;
-  const query = req.validated?.query || Object.fromEntries(req.query.entries());
+  console.log('[GET] Product route invoked')
+  const validatedParams = (req.validated?.params as { id: number }) || params
+  const query = req.validated?.query || Object.fromEntries(req.query.entries())
   return res.json({
     id: validatedParams.id,
     query,
-    name: "Sample Product",
-  });
+    name: 'Sample Product',
+  })
 }
 
 // POST handler: creates a new product
 export async function POST(req: BurgerRequest, res: BurgerResponse) {
-  console.log("[POST] Product route invoked");
-  const body = req.validated?.body || (await req.json());
-  return res.json(body);
+  console.log('[POST] Product route invoked')
+  const body = req.validated?.body || (await req.json())
+  return res.json(body)
 }
 ```
 
