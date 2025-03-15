@@ -12,7 +12,11 @@ import {
 } from "../utils/index.js";
 
 // Import types
-import type { RequestHandler, RouteDefinition } from "../types/index.js";
+import type {
+  Middleware,
+  RequestHandler,
+  RouteDefinition,
+} from "../types/index.js";
 
 /**
  * ApiRouter class for handling file-based routing.
@@ -127,10 +131,11 @@ export class ApiRouter {
       const routeDef: RouteDefinition = {
         path: routePath,
         handlers,
-        middleware: routeModule.middleware,
+        middleware: routeModule.middleware as Middleware[],
         schema: routeModule.schema,
         openapi: routeModule.openapi,
       };
+
       this.routes.push(routeDef);
     } catch (error) {
       throw new Error(

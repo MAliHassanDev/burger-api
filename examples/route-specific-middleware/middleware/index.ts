@@ -1,7 +1,8 @@
 import type {
+  Middleware,
   BurgerRequest,
   BurgerResponse,
-  Middleware,
+  BurgerNext,
 } from "../../../src/types";
 
 /**
@@ -15,7 +16,7 @@ import type {
 export const globalMiddleware1: Middleware = async (
   req: BurgerRequest,
   res: BurgerResponse,
-  next: () => Promise<Response>
+  next: BurgerNext
 ) => {
   console.log("Global middleware executed.");
 

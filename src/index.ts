@@ -198,6 +198,7 @@ export type {
   RequestHandler,
   BurgerRequest,
   BurgerResponse,
+  BurgerNext,
   Middleware,
   openapi,
 } from "./types/index.js";
