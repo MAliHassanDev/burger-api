@@ -1,5 +1,5 @@
 // Import burger
-import { Burger } from "@src/index";
+import { Burger } from "@src";
 
 // Create a new burger instance
 const burger = new Burger({

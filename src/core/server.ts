@@ -10,7 +10,7 @@ import type {
   RequestHandler,
   BurgerRequest,
   BurgerResponse,
-} from "@burgerTypes/index.js";
+} from "@burgerTypes";
 
 export class Server {
   private options: ServerOptions;

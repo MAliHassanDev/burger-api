@@ -16,7 +16,7 @@ import type {
   BurgerRequest,
   BurgerResponse,
   Middleware,
-} from "@burgerTypes/index";
+} from "@burgerTypes";
 
 export class Burger {
   private server: Server;
@@ -190,7 +190,7 @@ export class Burger {
 }
 
 // Export utils
-export { setDir } from "@utils/index.js";
+export { setDir } from "@utils";
 
 // Export types
 export type {
@@ -201,4 +201,4 @@ export type {
   BurgerNext,
   Middleware,
   openapi,
-} from "@burgerTypes/index.js";
+} from "@burgerTypes";

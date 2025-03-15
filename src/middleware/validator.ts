@@ -5,7 +5,7 @@ import type {
   BurgerRequest,
   BurgerResponse,
   BurgerNext,
-} from "@burgerTypes/index.js";
+} from "@burgerTypes";
 
 /**
  * Creates a middleware function that validates request data according to the

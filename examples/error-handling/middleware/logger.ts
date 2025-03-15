@@ -3,7 +3,7 @@ import type {
   BurgerRequest,
   BurgerResponse,
   BurgerNext,
-} from "@src/index";
+} from "@src";
 
 // Global middleware example: a simple logger.
 export const globalLogger: Middleware = async (

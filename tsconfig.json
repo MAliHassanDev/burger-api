@@ -34,6 +34,11 @@
       "@utils/*": ["src/utils/*"],  
       "@middleware/*": ["src/middleware/*"],
       "@burgerTypes/*": ["src/types/*"],
+      "@src": ["src/index.js"],
+      "@core": ["src/core/index.js"],
+      "@utils": ["src/utils/index.js"],
+      "@middleware": ["src/middleware/index.js"],
+      "@burgerTypes": ["src/types/index.js"],
     }
   },
   "include": ["src/**/*", "tests/**/*", "examples/**/*"],

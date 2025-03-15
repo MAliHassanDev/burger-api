@@ -1,4 +1,4 @@
-import type { PageDefinition, RouteDefinition } from "@burgerTypes/index.js";
+import type { PageDefinition, RouteDefinition } from "@burgerTypes";
 
 /**
  * Constants for route handling.
