@@ -1,8 +1,8 @@
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 // Import types
-import type { ApiRouter } from "@core/api-router.js";
-import type { ServerOptions } from "@burgerTypes";
+import type { ApiRouter } from '@core/api-router.js';
+import type { ServerOptions } from '@burgerTypes';
 
 /**
  * Builds an array of OpenAPI 3.0 parameters based on the Zod schema.
@@ -13,39 +13,39 @@ import type { ServerOptions } from "@burgerTypes";
  * @param location - The location of the parameter. Must be either "path" or "query".
  * @returns An array of OpenAPI 3.0 parameter objects.
  */
-function buildParameters(zodSchema: any, location: "path" | "query"): any[] {
-  const parameters: any[] = [];
-  if (
-    zodSchema &&
-    zodSchema._def &&
-    typeof zodSchema._def.shape === "function"
-  ) {
-    // Get the shape of the Zod schema
-    const shape = zodSchema._def.shape();
+function buildParameters(zodSchema: any, location: 'path' | 'query'): any[] {
+    const parameters: any[] = [];
+    if (
+        zodSchema &&
+        zodSchema._def &&
+        typeof zodSchema._def.shape === 'function'
+    ) {
+        // Get the shape of the Zod schema
+        const shape = zodSchema._def.shape();
 
-    for (const key in shape) {
-      // Get the definition of the field
-      const fieldDef = shape[key];
+        for (const key in shape) {
+            // Get the definition of the field
+            const fieldDef = shape[key];
 
-      // Determine if the field is optional
-      const isOptional = fieldDef._def.typeName === "ZodOptional";
+            // Determine if the field is optional
+            const isOptional = fieldDef._def.typeName === 'ZodOptional';
 
-      parameters.push({
-        // Set the name of the parameter
-        name: key,
-        // Type of the parameter path or query
-        in: location,
-        // Set the required flag
-        required: !isOptional,
-        // Set the schema type
-        schema: { type: "string" },
-        // Description of the parameter
-        description: `${location} parameter ${key}`,
-      });
+            parameters.push({
+                // Set the name of the parameter
+                name: key,
+                // Type of the parameter path or query
+                in: location,
+                // Set the required flag
+                required: !isOptional,
+                // Set the schema type
+                schema: { type: 'string' },
+                // Description of the parameter
+                description: `${location} parameter ${key}`,
+            });
+        }
     }
-  }
 
-  return parameters;
+    return parameters;
 }
 
 /**
@@ -56,17 +56,17 @@ function buildParameters(zodSchema: any, location: "path" | "query"): any[] {
  * @returns An OpenAPI requestBody object, or undefined if no schema is provided.
  */
 function buildRequestBody(zodSchema: any): any {
-  if (!zodSchema) return undefined;
-  const jsonSchema = zodToJsonSchema(zodSchema);
-  return {
-    content: {
-      "application/json": {
-        schema: jsonSchema,
-      },
-    },
-    description: "Request body",
-    required: true,
-  };
+    if (!zodSchema) return undefined;
+    const jsonSchema = zodToJsonSchema(zodSchema);
+    return {
+        content: {
+            'application/json': {
+                schema: jsonSchema,
+            },
+        },
+        description: 'Request body',
+        required: true,
+    };
 }
 
 /**
@@ -76,8 +76,8 @@ function buildRequestBody(zodSchema: any): any {
  * @returns The converted route path with curly brace syntax (e.g., "/user/{id}").
  */
 function convertPathForOpenAPI(routePath: string): string {
-  // Replace occurrences of :param with {param}
-  return routePath.replace(/:([a-zA-Z0-9_]+)/g, "{$1}");
+    // Replace occurrences of :param with {param}
+    return routePath.replace(/:([a-zA-Z0-9_]+)/g, '{$1}');
 }
 
 /**
@@ -87,72 +87,73 @@ function convertPathForOpenAPI(routePath: string): string {
  * @returns The OpenAPI document as a JavaScript object.
  */
 export function generateOpenAPIDocument(
-  router: ApiRouter,
-  options: ServerOptions
+    router: ApiRouter,
+    options: ServerOptions
 ) {
-  const openapiDoc = {
-    openapi: "3.0.0",
-    info: {
-      title: options.title || "Burger API",
-      description: options.description || "Burger API documentation",
-      version: options.version || "1.0.0",
-    },
-    paths: {} as Record<string, any>,
-  };
-
-  // Iterate over each route in the router.
-  for (const route of router.routes) {
-    // Convert colon-based dynamic segments to OpenAPI's {param} syntax.
-    const openApiPath = convertPathForOpenAPI(route.path);
-    // Initialize path object if necessary
-    openapiDoc.paths[openApiPath] = openapiDoc.paths[openApiPath] || {};
-
-    // For each HTTP method in the route, add an OpenAPI operation.
-    for (const method in route.handlers) {
-      // Convert HTTP method to lowercase
-      const lowerMethod = method.toLowerCase();
-
-      // Use provided openapi metadata if available; else, fallback to auto-generated values.
-      const methodMeta = route.openapi?.[lowerMethod] || {};
-
-      // Generate an operationId: e.g., "get_api_product"
-      const operationId =
-        methodMeta.operationId ||
-        `${lowerMethod}_${route.path.replace(/[\/:]/g, "_")}`;
-
-      // Build parameters for both path and query from the schema.
-      let parameters: any[] = [];
-      if (route.schema && route.schema[lowerMethod]) {
-        const schemaDef = route.schema[lowerMethod];
-        parameters = [
-          ...buildParameters(schemaDef.params, "path"),
-          ...buildParameters(schemaDef.query, "query"),
-        ];
-      }
-
-      // Build requestBody if a body schema exists.
-      let requestBody = undefined;
-      if (route.schema && route.schema[lowerMethod]?.body) {
-        requestBody = buildRequestBody(route.schema[lowerMethod].body);
-      }
-
-      openapiDoc.paths[openApiPath][lowerMethod] = {
-        operationId,
-        summary: methodMeta.summary || `Summary for ${method} ${route.path}`,
-        description: methodMeta.description || "",
-        tags: methodMeta.tags || [],
-        deprecated: methodMeta.deprecated || false,
-        parameters: parameters,
-        requestBody: requestBody,
-        responses: methodMeta.responses || {
-          "200": {
-            description: "Successful response",
-          },
+    const openapiDoc = {
+        openapi: '3.0.0',
+        info: {
+            title: options.title || 'Burger API',
+            description: options.description || 'Burger API documentation',
+            version: options.version || '1.0.0',
         },
-        externalDocs: methodMeta.externalDocs || undefined,
-      };
-    }
-  }
+        paths: {} as Record<string, any>,
+    };
 
-  return openapiDoc;
+    // Iterate over each route in the router.
+    for (const route of router.routes) {
+        // Convert colon-based dynamic segments to OpenAPI's {param} syntax.
+        const openApiPath = convertPathForOpenAPI(route.path);
+        // Initialize path object if necessary
+        openapiDoc.paths[openApiPath] = openapiDoc.paths[openApiPath] || {};
+
+        // For each HTTP method in the route, add an OpenAPI operation.
+        for (const method in route.handlers) {
+            // Convert HTTP method to lowercase
+            const lowerMethod = method.toLowerCase();
+
+            // Use provided openapi metadata if available; else, fallback to auto-generated values.
+            const methodMeta = route.openapi?.[lowerMethod] || {};
+
+            // Generate an operationId: e.g., "get_api_product"
+            const operationId =
+                methodMeta.operationId ||
+                `${lowerMethod}_${route.path.replace(/[\/:]/g, '_')}`;
+
+            // Build parameters for both path and query from the schema.
+            let parameters: any[] = [];
+            if (route.schema && route.schema[lowerMethod]) {
+                const schemaDef = route.schema[lowerMethod];
+                parameters = [
+                    ...buildParameters(schemaDef.params, 'path'),
+                    ...buildParameters(schemaDef.query, 'query'),
+                ];
+            }
+
+            // Build requestBody if a body schema exists.
+            let requestBody = undefined;
+            if (route.schema && route.schema[lowerMethod]?.body) {
+                requestBody = buildRequestBody(route.schema[lowerMethod].body);
+            }
+
+            openapiDoc.paths[openApiPath][lowerMethod] = {
+                operationId,
+                summary:
+                    methodMeta.summary || `Summary for ${method} ${route.path}`,
+                description: methodMeta.description || '',
+                tags: methodMeta.tags || [],
+                deprecated: methodMeta.deprecated || false,
+                parameters: parameters,
+                requestBody: requestBody,
+                responses: methodMeta.responses || {
+                    '200': {
+                        description: 'Successful response',
+                    },
+                },
+                externalDocs: methodMeta.externalDocs || undefined,
+            };
+        }
+    }
+
+    return openapiDoc;
 }
