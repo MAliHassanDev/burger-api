@@ -2,8 +2,6 @@
 import { Server } from "./core/server.js";
 import { ApiRouter } from "./core/api-router.js";
 import { PageRouter } from "./core/page-router.js";
-import { HttpRequest } from "./core/request.js";
-import { HttpResponse } from "./core/response.js";
 import { generateOpenAPIDocument } from "./core/openapi.js";
 import { swaggerHtml } from "./core/swagger-ui.js";
 
@@ -13,9 +11,10 @@ import { createValidationMiddleware } from "./middleware/validator.js";
 // Import types
 import type {
   ServerOptions,
+  Middleware,
   BurgerRequest,
   BurgerResponse,
-  Middleware,
+  BurgerNext,
 } from "./types";
 
 export class Burger {
@@ -84,15 +83,9 @@ export class Burger {
       // Start the server
       this.server.start(
         routes,
-        async (req: Request) => {
-          // Wrap the native request with helper methods
-          const request = new HttpRequest(req) as unknown as BurgerRequest;
-
-          // Create a new instance of BurgerResponse for the handler
-          const response = new HttpResponse() as unknown as BurgerResponse;
-
+        async (req: BurgerRequest, res: BurgerResponse) => {
           // Create URL object
-          const url = new URL(request.url);
+          const url = new URL(req.url);
 
           // Check if the request is for /openapi.json
           if (url.pathname === "/openapi.json") {
@@ -100,18 +93,16 @@ export class Burger {
               // Generate OpenAPI document
               const doc = generateOpenAPIDocument(this.apiRouter, this.options);
               // Return it as JSON
-              return response.json(doc);
+              return res.json(doc);
             } else {
               // Return an error if router is not available
-              return response
-                .status(500)
-                .json({ error: "Router not available" });
+              return res.status(500).json({ error: "Router not available" });
             }
           }
 
           // Serve the Swagger UI at /docs
           if (url.pathname === "/docs") {
-            return response.html(swaggerHtml);
+            return res.html(swaggerHtml);
           }
 
           // Get the route and params for the current request
@@ -119,18 +110,18 @@ export class Burger {
 
           if (!route) {
             // Return a 404 if no route is found
-            return response.status(404).json({ error: "Route not found" });
+            return res.status(404).json({ error: "Route not found" });
           }
 
           // Add params to the request
-          request.params = params;
+          req.params = params;
 
           // Get the handler for the current HTTP method
           const method = req.method.toUpperCase();
           const handler = route.handlers[method];
           if (!handler) {
             // Return a 405 if no handler is found
-            return response.status(405).json({ error: "Method Not Allowed" });
+            return res.status(405).json({ error: "Method Not Allowed" });
           }
 
           /**
@@ -142,12 +133,12 @@ export class Burger {
            */
 
           // 1. Compose the Route-Specific Chain
-          let routeChain = async () => handler(request, response);
+          let routeChain = async () => handler(req, res);
           if (route.middleware && route.middleware.length > 0) {
             // Wrap route-specific middleware (in reverse order to preserve order of execution)
             for (const mw of route.middleware.slice().reverse()) {
-              const next = routeChain;
-              routeChain = async () => mw(request, response, next);
+              const next: BurgerNext = routeChain;
+              routeChain = async () => mw(req, res, next);
             }
           }
 
@@ -155,16 +146,15 @@ export class Burger {
           let composedChain = routeChain;
           if (route.schema) {
             const validationMw = createValidationMiddleware(route.schema);
-            composedChain = async () =>
-              validationMw(request, response, routeChain);
+            composedChain = async () => validationMw(req, res, routeChain);
           }
 
           // 3. Wrap Global Middleware (in reverse order so that the first-added runs first)
           let finalHandler = composedChain;
           if (this.globalMiddleware.length > 0) {
             for (const mw of this.globalMiddleware.slice().reverse()) {
-              const next = finalHandler;
-              finalHandler = async () => mw(request, response, next);
+              const next: BurgerNext = finalHandler;
+              finalHandler = async () => mw(req, res, next);
             }
           }
 
@@ -178,7 +168,7 @@ export class Burger {
       // Fallback to default handler if no router is provided
       this.server.start(
         null,
-        async (_: Request) =>
+        async (_: BurgerRequest, res: BurgerResponse) =>
           new Response("Hello from burger-api!", {
             headers: { "Content-Type": "text/plain" },
           }),
