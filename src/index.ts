@@ -104,10 +104,13 @@ export class Burger {
                             // Return it as JSON
                             return res.json(doc);
                         } else {
-                            // Return an error if router is not available
+                            // Return a descriptive error if router is not available
                             return res
                                 .status(500)
-                                .json({ error: 'Router not available' });
+                                .json({ 
+                                    error: 'API Router not configured', 
+                                    message: 'Please provide an apiDir option when initializing the Burger instance to enable OpenAPI documentation.'
+                                });
                         }
                     }
 
