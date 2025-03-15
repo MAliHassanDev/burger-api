@@ -5,7 +5,7 @@ import type {
   BurgerRequest,
   BurgerResponse,
   BurgerNext,
-} from "../types/index.js";
+} from '@burgerTypes/index.js'
 
 /**
  * Creates a middleware function that validates request data according to the
@@ -20,18 +20,18 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
   return async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
     // If the request has been validated, continue.
     if (req.validated) {
-      return await next();
+      return await next()
     }
 
     // Determine the HTTP method (in lowercase) to match the schema.
-    const method = req.method.toLowerCase();
+    const method = req.method.toLowerCase()
 
     // Get the schema for the current method.
-    const methodSchema = schema[method];
+    const methodSchema = schema[method]
 
     // If there's no schema for this method, continue.
     if (!methodSchema) {
-      return await next();
+      return await next()
     }
 
     /**
@@ -40,9 +40,9 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
      * and an `error` providing details about the validation failure.
      */
     const errors: {
-      field: string;
-      error: any;
-    }[] = [];
+      field: string
+      error: any
+    }[] = []
 
     /**
      * Object to store validated request data. This will be attached to the
@@ -54,18 +54,18 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
      * - `body`: Validated request body (if JSON).
      */
     const validated: {
-      params?: unknown;
-      query?: unknown;
-      body?: unknown;
-    } = {};
+      params?: unknown
+      query?: unknown
+      body?: unknown
+    } = {}
 
     // Validate URL parameters (if available and schema provided).
     // (Assume that middleware upstream attaches route params to req.params.)
     if (methodSchema.params && req.params) {
       try {
-        validated.params = methodSchema.params.parse(req.params);
+        validated.params = methodSchema.params.parse(req.params)
       } catch (e: any) {
-        errors.push({ field: "params", error: e.errors });
+        errors.push({ field: 'params', error: e.errors })
       }
     }
 
@@ -74,42 +74,42 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
       try {
         validated.query = methodSchema.query.parse(
           Object.fromEntries(req.query.entries())
-        );
+        )
       } catch (e: any) {
-        errors.push({ field: "query", error: e.errors });
+        errors.push({ field: 'query', error: e.errors })
       }
     }
 
     // Validate request body.
     if (methodSchema.body) {
       // Check the Content-Type header.
-      const contentType = req.headers.get("Content-Type") || "";
-      if (!contentType.includes("application/json")) {
+      const contentType = req.headers.get('Content-Type') || ''
+      if (!contentType.includes('application/json')) {
         // If not JSON, push an error indicating the expected content type.
         errors.push({
-          field: "body",
+          field: 'body',
           error: "Invalid Content-Type. Expected 'application/json'.",
-        });
+        })
       } else {
         try {
           // Attempt to parse the JSON body.
-          const bodyData = await req.json();
-          validated.body = methodSchema.body.parse(bodyData);
+          const bodyData = await req.json()
+          validated.body = methodSchema.body.parse(bodyData)
         } catch (e: any) {
-          errors.push({ field: "body", error: e.errors || e.message });
+          errors.push({ field: 'body', error: e.errors || e.message })
         }
       }
     }
 
     if (errors.length > 0) {
       // If validation fails, return a 400 response with error details.
-      return res.status(400).json({ errors });
+      return res.status(400).json({ errors })
     }
 
     // Attach validated data to the request.
-    req.validated = validated;
+    req.validated = validated
 
     // Continue to the next middleware or handler.
-    return await next();
-  };
+    return await next()
+  }
 }

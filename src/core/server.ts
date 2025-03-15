@@ -1,27 +1,27 @@
 // Import stuff from core
-import { HttpRequest } from "./request.js";
-import { HttpResponse } from "./response.js";
+import { HttpRequest } from '@core/request.js'
+import { HttpResponse } from '@core/response.js'
 
 // Import stuff from utils
-import { errorResponse } from "../utils/error.js";
+import { errorResponse } from '@utils/error.js'
 
 import type {
   ServerOptions,
   RequestHandler,
   BurgerRequest,
   BurgerResponse,
-} from "../types";
+} from '@burgerTypes/index.js'
 
 export class Server {
-  private options: ServerOptions;
-  private server: ReturnType<typeof Bun.serve> | null = null;
+  private options: ServerOptions
+  private server: ReturnType<typeof Bun.serve> | null = null
 
   /**
    * Initializes a new instance of the Server class with the given options.
    * @param options - Configuration options for the server.
    */
   constructor(options: ServerOptions) {
-    this.options = options;
+    this.options = options
   }
 
   /**
@@ -43,26 +43,24 @@ export class Server {
       fetch: async (request: Request) => {
         try {
           // Wrap the native Request with HttpRequest to get a BurgerRequest
-          const burgerReq = new HttpRequest(
-            request
-          ) as unknown as BurgerRequest;
+          const burgerReq = new HttpRequest(request) as unknown as BurgerRequest
 
           // Wrap the native Response with HttpResponse to get a BurgerResponse
-          const burgerRes = new HttpResponse() as unknown as BurgerResponse;
+          const burgerRes = new HttpResponse() as unknown as BurgerResponse
 
           // Invoke and return the handler with the wrapped requests and responses
-          return await handler(burgerReq, burgerRes);
+          return await handler(burgerReq, burgerRes)
         } catch (error) {
           // Return a custom error response
-          return errorResponse(error, request, this.options.debug ?? false);
+          return errorResponse(error, request, this.options.debug ?? false)
         }
       },
       port,
-    });
+    })
     if (cb) {
-      cb();
+      cb()
     } else {
-      console.log(`✔ Server started on port: ${port}`);
+      console.log(`✔ Server started on port: ${port}`)
     }
   }
 
@@ -74,8 +72,8 @@ export class Server {
    */
   public stop(): void {
     if (this.server) {
-      this.server.stop();
-      console.log("Server stopped.");
+      this.server.stop()
+      console.log('Server stopped.')
     }
   }
 }

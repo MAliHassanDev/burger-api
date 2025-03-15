@@ -28,6 +28,12 @@
     "rootDir": ".",
     "outDir": "./dist",
     "baseUrl": ".",
+    "paths": {
+      "@core/*": ["src/core/*"],
+      "@utils/*": ["src/utils/*"],  
+      "@middleware/*": ["src/middleware/*"],
+      "@burgerTypes/*": ["src/types/*"],
+    }
   },
   "include": ["src/**/*", "tests/**/*", "examples/schemas"],
   "exclude": ["node_modules", "dist"]
