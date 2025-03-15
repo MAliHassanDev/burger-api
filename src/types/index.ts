@@ -83,8 +83,6 @@ export interface BurgerRequest extends Request {
   };
 }
 
-
-
 export interface BurgerResponse {
   /**
    * Sets a header value.

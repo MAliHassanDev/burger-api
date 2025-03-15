@@ -2,11 +2,7 @@
 import { z } from "zod";
 
 // Import types
-import type {
-  BurgerRequest,
-  BurgerResponse,
-  BurgerNext,
-} from "../../../../src";
+import type { BurgerRequest, BurgerResponse, BurgerNext } from "@src";
 
 // Export a schema for both GET and POST requests.
 // For GET, we validate the query parameters.

@@ -9,14 +9,10 @@ import {
   compareRoutes,
   ROUTE_CONSTANTS,
   HTTP_METHODS,
-} from "../utils/index.js";
+} from "@utils";
 
 // Import types
-import type {
-  Middleware,
-  RequestHandler,
-  RouteDefinition,
-} from "../types/index.js";
+import type { Middleware, RequestHandler, RouteDefinition } from "@burgerTypes";
 
 /**
  * ApiRouter class for handling file-based routing.

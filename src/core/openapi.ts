@@ -1,8 +1,8 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 // Import types
-import type { ApiRouter } from "./api-router.js";
-import type { ServerOptions } from "../types/index.js";
+import type { ApiRouter } from "@core/api-router.js";
+import type { ServerOptions } from "@burgerTypes";
 
 /**
  * Builds an array of OpenAPI 3.0 parameters based on the Zod schema.

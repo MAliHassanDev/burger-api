@@ -2,18 +2,18 @@
 import { serve } from "bun";
 
 // Import stuff from core
-import { HttpRequest } from "./request.js";
-import { HttpResponse } from "./response.js";
+import { HttpRequest } from "@core/request.js";
+import { HttpResponse } from "@core/response.js";
 
 // Import stuff from utils
-import { errorResponse } from "../utils/error.js";
+import { errorResponse } from "@utils/error.js";
 
 import type {
   ServerOptions,
   RequestHandler,
   BurgerRequest,
   BurgerResponse,
-} from "../types";
+} from "@burgerTypes";
 
 export class Server {
   private options: ServerOptions;

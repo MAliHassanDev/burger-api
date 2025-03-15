@@ -3,7 +3,7 @@ import type {
   BurgerRequest,
   BurgerResponse,
   BurgerNext,
-} from "../../../src/types";
+} from "@burgerTypes";
 
 /**
  * Example of a global middleware function. This middleware logs a message to

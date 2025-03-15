@@ -2,11 +2,7 @@
 import { z } from "zod";
 
 // Import types
-import type {
-  BurgerRequest,
-  BurgerResponse,
-  BurgerNext,
-} from "../../../../src/types";
+import type { BurgerRequest, BurgerResponse, BurgerNext } from "@burgerTypes";
 
 // OpenAPI Metadata
 // Developers can provide custom metadata to enrich the docs.

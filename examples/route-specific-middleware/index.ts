@@ -1,5 +1,5 @@
 // Import burger
-import { Burger, setDir } from "../../src/index";
+import { Burger, setDir } from "@src";
 import { globalMiddleware1 } from "./middleware";
 
 // Create a new burger instance

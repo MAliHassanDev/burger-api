@@ -1,12 +1,12 @@
 // Import stuff  from core
-import { Server } from "./core/server.js";
-import { ApiRouter } from "./core/api-router.js";
-import { PageRouter } from "./core/page-router.js";
-import { generateOpenAPIDocument } from "./core/openapi.js";
-import { swaggerHtml } from "./core/swagger-ui.js";
+import { Server } from "@core/server.js";
+import { ApiRouter } from "@core/api-router.js";
+import { PageRouter } from "@core/page-router.js";
+import { generateOpenAPIDocument } from "@core/openapi.js";
+import { swaggerHtml } from "@core/swagger-ui.js";
 
 // Import middleware
-import { createValidationMiddleware } from "./middleware/validator.js";
+import { createValidationMiddleware } from "@middleware/validator.js";
 
 // Import types
 import type {
@@ -15,7 +15,7 @@ import type {
   BurgerRequest,
   BurgerResponse,
   BurgerNext,
-} from "./types";
+} from "@burgerTypes";
 
 export class Burger {
   private server: Server;
@@ -183,7 +183,7 @@ export class Burger {
 }
 
 // Export utils
-export { setDir } from "./utils/index.js";
+export { setDir } from "@utils";
 
 // Export types
 export type {
@@ -194,4 +194,4 @@ export type {
   BurgerNext,
   Middleware,
   openapi,
-} from "./types/index.js";
+} from "@burgerTypes";

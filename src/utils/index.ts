@@ -6,7 +6,7 @@ export {
   HTTP_METHODS,
   compareRoutes,
   getRouteSpecificity,
-} from "./routing.js";
+} from "@utils/routing.js";
 
 /**
  * Resolves the given path to the specified directory.
