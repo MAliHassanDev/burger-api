@@ -1,3 +1,6 @@
+// Import stuff from Bun
+import { serve } from "bun";
+
 // Import stuff from core
 import { HttpRequest } from "./request.js";
 import { HttpResponse } from "./response.js";
@@ -14,7 +17,7 @@ import type {
 
 export class Server {
   private options: ServerOptions;
-  private server: ReturnType<typeof Bun.serve> | null = null;
+  private server: ReturnType<typeof serve> | null = null;
 
   /**
    * Initializes a new instance of the Server class with the given options.
@@ -32,14 +35,15 @@ export class Server {
    * @param cb - An optional callback function to be called when the server starts.
    */
   public start(
-    routes: any,
+    routes: { [key: string]: any } | undefined,
     handler: RequestHandler,
     port: number,
     cb?: () => void
   ): void {
     // Start Bun's native server using Bun.serve
-    this.server = Bun.serve({
+    this.server = serve({
       routes,
+      // Burger's fetch handler
       fetch: async (request: Request) => {
         try {
           // Wrap the native Request with HttpRequest to get a BurgerRequest
