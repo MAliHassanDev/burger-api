@@ -1,8 +1,6 @@
- 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/0d9b376e-1d89-479a-aa7f-e7ee3c6b2342" alt="BurgerAPI logo"/>
 </p>
-
 
 [![Under Development](https://img.shields.io/badge/under%20development-red.svg)](https://github.com/isfhan/burger-api) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Bun](https://img.shields.io/badge/Bun-1.2.4-black?logo=bun)](https://bun.sh)
 
@@ -215,12 +213,12 @@ Here's how to implement this structure:
 1. **Global Middleware** (`src/middleware/global/logger.ts`):
 
 ```ts
-import type { BurgerRequest, BurgerResponse } from "burger-api";
+import type { BurgerRequest, BurgerResponse, BurgerNext } from "burger-api";
 
 export const logger = async (
   req: BurgerRequest,
   res: BurgerResponse,
-  next: () => Promise<Response>
+  next: BurgerNext
 ) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   return next();
@@ -230,12 +228,12 @@ export const logger = async (
 2. **Route-Specific Middleware** (`src/middleware/routes/products.ts`):
 
 ```ts
-import type { BurgerRequest, BurgerResponse } from "burger-api";
+import type { BurgerRequest, BurgerResponse, BurgerNext } from "burger-api";
 
 export const validateProductAccess = async (
   req: BurgerRequest,
   res: BurgerResponse,
-  next: () => Promise<Response>
+  next: BurgerNext
 ) => {
   // Your middleware logic here
   return next();
@@ -394,7 +392,7 @@ Below is an example route file demonstrating schema validation, route-specific m
 // examples/demo/api/product/[id]/route.ts
 
 import { z } from "zod";
-import type { BurgerRequest, BurgerResponse } from "burger-api";
+import type { BurgerRequest, BurgerResponse, BurgerNext } from "burger-api";
 
 // OpenAPI metadata for this route
 export const openapi = {
@@ -429,11 +427,7 @@ export const schema = {
 
 // Route-specific middleware
 export const middleware = [
-  async (
-    req: BurgerRequest,
-    res: BurgerResponse,
-    next: () => Promise<Response>
-  ) => {
+  async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
     console.log("[Product Middleware] Executing product route middleware");
     return next();
   },

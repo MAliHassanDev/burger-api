@@ -1,9 +1,10 @@
 // Import types
 import type {
+  RouteSchema,
+  Middleware,
   BurgerRequest,
   BurgerResponse,
-  Middleware,
-  RouteSchema,
+  BurgerNext,
 } from "../types/index.js";
 
 /**
@@ -16,11 +17,7 @@ import type {
  * error details if validation fails.
  */
 export function createValidationMiddleware(schema: RouteSchema): Middleware {
-  return async (
-    req: BurgerRequest,
-    res: BurgerResponse,
-    next: () => Promise<Response>
-  ) => {
+  return async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
     // If the request has been validated, continue.
     if (req.validated) {
       return await next();

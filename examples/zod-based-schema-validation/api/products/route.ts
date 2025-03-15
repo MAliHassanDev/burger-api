@@ -2,7 +2,11 @@
 import { z } from "zod";
 
 // Import types
-import type { BurgerRequest, BurgerResponse } from "../../../../src";
+import type {
+  BurgerRequest,
+  BurgerResponse,
+  BurgerNext,
+} from "../../../../src";
 
 // Export a schema for both GET and POST requests.
 // For GET, we validate the query parameters.
@@ -25,11 +29,7 @@ export const schema = {
 
 // Route-specific middleware
 export const middleware = [
-  async (
-    req: BurgerRequest,
-    res: BurgerResponse,
-    next: () => Promise<Response>
-  ) => {
+  async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
     console.log("Product Route-specific middleware executed");
     return await next();
   },

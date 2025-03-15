@@ -83,6 +83,8 @@ export interface BurgerRequest extends Request {
   };
 }
 
+
+
 export interface BurgerResponse {
   /**
    * Sets a header value.
@@ -171,6 +173,13 @@ export interface BurgerResponse {
 }
 
 /**
+ * Represents a next function in the request handling pipeline.
+ * This function is used to call the next middleware in the chain.
+ * It returns a Promise that resolves with a Response object.
+ */
+export type BurgerNext = () => Promise<Response>;
+
+/**
  * Represents a request handler function.
  * Request handler functions receive a BurgerRequest and BurgerResponse as
  * arguments. They must return a Response object, which can be either a Promise
@@ -199,7 +208,7 @@ export type RequestHandler = (
 export type Middleware = (
   request: BurgerRequest,
   response: BurgerResponse,
-  next: () => Promise<Response>
+  next: BurgerNext
 ) => Promise<Response>;
 
 export interface RouteDefinition {

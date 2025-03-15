@@ -2,7 +2,11 @@
 import { z } from "zod";
 
 // Import types
-import type { BurgerRequest, BurgerResponse } from "../../../../../src/types";
+import type {
+  BurgerRequest,
+  BurgerResponse,
+  BurgerNext,
+} from "../../../../../src/types";
 
 // OpenAPI Metadata
 // Developers can provide custom metadata to enrich the docs.
@@ -38,20 +42,13 @@ export const schema = {
 
 // Route-Specific Middleware
 export const middleware = [
-  async (
-    req: BurgerRequest,
-    res: BurgerResponse,
-    next: () => Promise<Response>
-  ) => {
+  async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
     console.log("Product Detail Middleware");
     return next();
   },
 ];
 
-export async function GET(
-  req: BurgerRequest,
-  res: BurgerResponse,
-) {
+export async function GET(req: BurgerRequest, res: BurgerResponse) {
   console.log("[GET] Product Detail route invoked");
 
   // Use validated parameters if available; otherwise, fallback to resolved params.
