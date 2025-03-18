@@ -27,6 +27,8 @@ export const schema = {
   },
 };
 
+type ReqBody = z.infer<typeof schema.post.body>;
+
 // Route-Specific Middleware
 export const middleware = [
   async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
@@ -36,9 +38,9 @@ export const middleware = [
 ];
 
 // POST handler: creates a new product.
-export async function POST(req: BurgerRequest, res: BurgerResponse) {
+export async function POST(req: BurgerRequest<{body: ReqBody}>, res: BurgerResponse) {
   console.log("[POST] Products route invoked");
-  // Use validated body if available; otherwise, parse the JSON body.
-  const body = req.validated?.body || (await req.json());
+  // Use validated body 
+  const body = req.validated.body;
   return res.json(body);
 }

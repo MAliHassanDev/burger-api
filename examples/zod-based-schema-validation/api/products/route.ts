@@ -35,7 +35,7 @@ export const middleware = [
 export async function GET(req: BurgerRequest, res: BurgerResponse) {
   console.log("Product GET request");
   // Use validated query if available, otherwise fallback to original query.
-  const query = req.validated?.query ?? req.query;
+  const query = req.validated.query ?? req.query;
   return res.json({
     query: query,
     name: "John Doe",

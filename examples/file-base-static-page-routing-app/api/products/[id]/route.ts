@@ -36,22 +36,30 @@ export const schema = {
   },
 };
 
+type ReqParams = z.infer<typeof schema.get.params>;
+type ReqQuery = z.infer<typeof schema.get.query>;
+
 // Route-Specific Middleware
 export const middleware = [
-  async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
+  async (
+    req: BurgerRequest<{ params: ReqParams; query: ReqQuery }>,
+    res: BurgerResponse,
+    next: BurgerNext
+  ) => {
     console.log("Product Detail Middleware");
     return next();
   },
 ];
 
-export async function GET(req: BurgerRequest, res: BurgerResponse) {
+export async function GET(req: BurgerRequest<{ params: ReqParams; query: ReqQuery }>, res: BurgerResponse) {
   console.log("[GET] Dynamic Product route invoked");
 
-  // Use validated parameters if available; otherwise, fallback to resolved params.
-  const validatedParams = req.validated?.params as { id: number };
-  const query = req.validated?.query;
+  // Use validated parameters 
+  const validatedParams = req.validated.params;
+  const query = req.validated.query;
+  
   return res.json({
-    id: validatedParams?.id,
+    id: validatedParams.id,
     query: query,
     name: "Sample Product",
   });
