@@ -45,24 +45,23 @@ export interface ServerOptions {
     debug?: boolean;
 }
 
-
 type DefaultRequestProperties = {
-  params?: unknown;
-  query?: unknown;
-  body?: unknown;
+    params?: Record<string, unknown>;
+    query?: Record<string, unknown>;
+    body?: Record<string, unknown>;
 };
 
 export interface BurgerRequest<
-  RequestValidatedProperties extends DefaultRequestProperties = DefaultRequestProperties
+    RequestValidatedProperties extends DefaultRequestProperties = DefaultRequestProperties
 > extends Request {
-  /**
-   * Provides helper to access query parameters as URLSearchParams.
-   * This is a convenience property that allows you to access the query
-   * parameters of the request as a URLSearchParams object, which provides
-   * methods for working with the query parameters like `get(key)`,
-   * `getAll(key)`, `has(key)`, `keys()`, `values()`, `entries()`, and more.
-   */
-  query: URLSearchParams;
+    /**
+     * Provides helper to access query parameters as URLSearchParams.
+     * This is a convenience property that allows you to access the query
+     * parameters of the request as a URLSearchParams object, which provides
+     * methods for working with the query parameters like `get(key)`,
+     * `getAll(key)`, `has(key)`, `keys()`, `values()`, `entries()`, and more.
+     */
+    query: URLSearchParams;
 
     /**
      * Contains URL parameters extracted from the request path.
@@ -74,18 +73,18 @@ export interface BurgerRequest<
      */
     params?: Record<string, string>;
 
-  /**
-   * Contains validated data for the request.
-   * This is an optional property that will only be present if
-   * a middleware has validated the request data and attached the
-   * validated data to the request.
-   *
-   * Properties:
-   * - `params`: Validated URL parameters.
-   * - `query`: Validated query string parameters.
-   * - `body`: Validated request body (if JSON).
-   */
-  validated: RequestValidatedProperties;
+    /**
+     * Contains validated data for the request.
+     * This is an optional property that will only be present if
+     * a middleware has validated the request data and attached the
+     * validated data to the request.
+     *
+     * Properties:
+     * - `params`: Validated URL parameters.
+     * - `query`: Validated query string parameters.
+     * - `body`: Validated request body (if JSON).
+     */
+    validated: RequestValidatedProperties;
 }
 
 export interface BurgerResponse {

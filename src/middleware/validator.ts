@@ -57,17 +57,13 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
          * - `query`: Validated query parameters.
          * - `body`: Validated request body (if JSON).
          */
-        const validated: {
-            params?: unknown;
-            query?: unknown;
-            body?: unknown;
-        } = {};
+        const validated: BurgerRequest['validated'] = {};
 
         // Validate URL parameters (if available and schema provided).
         // (Assume that middleware upstream attaches route params to req.params.)
         if (methodSchema.params && req.params) {
             try {
-                validated.params = methodSchema.params.parse(req.params);
+                validated.params = methodSchema.params.safeParse(req.params);
             } catch (e: any) {
                 errors.push({ field: 'params', error: e.errors });
             }
@@ -76,7 +72,7 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
         // Validate query parameters.
         if (methodSchema.query) {
             try {
-                validated.query = methodSchema.query.parse(
+                validated.query = methodSchema.query.safeParse(
                     Object.fromEntries(req.query.entries())
                 );
             } catch (e: any) {
@@ -98,7 +94,7 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
                 try {
                     // Attempt to parse the JSON body.
                     const bodyData = await req.json();
-                    validated.body = methodSchema.body.parse(bodyData);
+                    validated.body = methodSchema.body.safeParse(bodyData);
                 } catch (e: any) {
                     errors.push({
                         field: 'body',
