@@ -1,5 +1,4 @@
 // Import stuff from node
-import { readdirSync } from 'fs';
 import { readdir } from 'fs/promises';
 import * as path from 'path';
 
@@ -39,6 +38,14 @@ export class ApiRouter {
         if (!routesDir) {
             throw new Error('Routes directory path is required');
         }
+    }
+
+    /**
+     * Getter for the routes trie.
+     * @returns The root of the trie.
+     */
+    get routes() {
+        return this.root;
     }
 
     /**
@@ -144,6 +151,8 @@ export class ApiRouter {
     ): Promise<void> {
         try {
             const routePath = this.convertFilePathToRoute(relativePath);
+            console.log('Loading route:', routePath);
+
             const modulePath = path.resolve(entryPath);
             const routeModule = await import(modulePath);
 
@@ -238,7 +247,7 @@ export class ApiRouter {
     } {
         try {
             const url = new URL(request.url);
-            const reqPath = normalizePath(url.pathname); // Use normalizePath for consistency
+            const reqPath = normalizePath(url.pathname);
             const method = request.method.toUpperCase();
             const segments = reqPath.split('/').filter(Boolean);
 
@@ -261,7 +270,6 @@ export class ApiRouter {
             }
             return { params: {} };
         } catch (error) {
-            // Minimal handling: return empty result instead of wrapping error
             return { params: {} };
         }
     }
