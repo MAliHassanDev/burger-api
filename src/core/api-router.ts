@@ -1,18 +1,23 @@
 // Import stuff from node
 import { readdirSync } from 'fs';
+import { readdir } from 'fs/promises';
 import * as path from 'path';
 
 // Import utils
 import {
     cleanPrefix,
     normalizePath,
-    compareRoutes,
     ROUTE_CONSTANTS,
     HTTP_METHODS,
 } from '@utils';
 
 // Import types
-import type { Middleware, RequestHandler, RouteDefinition } from '@burgerTypes';
+import type {
+    Middleware,
+    RequestHandler,
+    RouteDefinition,
+    TrieNode,
+} from '@burgerTypes';
 
 /**
  * ApiRouter class for handling file-based routing.
@@ -21,13 +26,14 @@ import type { Middleware, RequestHandler, RouteDefinition } from '@burgerTypes';
  * Routes are sorted to prioritize static routes over dynamic ones to prevent overlapping route issues.
  */
 export class ApiRouter {
-    /** Array of loaded route definitions */
-    public routes: RouteDefinition[] = [];
+    /** The root of the trie where all routes will begin*/
+    private root: TrieNode = { children: new Map() };
 
     /**
      * Constructor for the ApiRouter class.
      * @param routesDir The directory path where route modules are located.
      * @param prefix Optional prefix to prepend to all routes (e.g., "api" becomes "/api/...").
+     * @throws {Error} If the routes directory path is not provided.
      */
     constructor(private routesDir: string, private prefix: string = '') {
         if (!routesDir) {
@@ -36,17 +42,13 @@ export class ApiRouter {
     }
 
     /**
-     * Loads route modules from the specified directory and adds them to the routes array.
-     * After loading, sorts the routes to prioritize static routes over dynamic ones based on specificity.
-     * @returns A promise that resolves when all route modules have been loaded and sorted.
-     * @throws Error if the routes directory doesn't exist or can't be accessed
+     * Loads all routes from the routes directory into the trie structure.
+     * @returns {Promise<void>} A promise that resolves when all routes are loaded.
+     * @throws {Error} If the routes directory is not found or if an error occurs during route loading.
      */
     public async loadRoutes(): Promise<void> {
         try {
-            this.routes = [];
             await this.scanDirectory(this.routesDir);
-            // Sort routes to ensure static routes are matched before dynamic ones
-            this.routes.sort((a, b) => compareRoutes(a, b));
         } catch (error) {
             const errorMessage =
                 error instanceof Error ? error.message : String(error);
@@ -55,10 +57,36 @@ export class ApiRouter {
     }
 
     /**
-     * Recursively scans the directory for route modules and adds them to the routes array.
-     * @param dir The current directory to scan.
-     * @param basePath The base path for constructing the route path.
-     * @throws Error if multiple dynamic folders are found at the same level or if directory access fails
+     * Inserts a route definition into the trie structure.
+     * @param routeDef The route definition to insert, containing path, handlers, middleware, schema, and OpenAPI metadata.
+     * @throws {Error} If the route definition is invalid or causes a conflict in the trie.
+     */
+    private insertRoute(routeDef: RouteDefinition) {
+        let node = this.root;
+        const segments = routeDef.path.split('/').filter(Boolean);
+        for (const segment of segments) {
+            if (segment.startsWith(':')) {
+                if (!node.paramChild) {
+                    node.paramChild = { children: new Map() };
+                }
+                node = node.paramChild;
+                node.paramName = segment.slice(1);
+            } else {
+                if (!node.children.has(segment)) {
+                    node.children.set(segment, { children: new Map() });
+                }
+                node = node.children.get(segment)!;
+            }
+        }
+        node.route = routeDef;
+    }
+
+    /**
+     * Recursively scans a directory for route modules (route.ts files) and loads them into the trie.
+     * @param dir The current directory path to scan.
+     * @param basePath The base path used to construct route paths from the directory structure.
+     * @returns {Promise<void>} A promise that resolves when the directory scan is complete.
+     * @throws {Error} If multiple dynamic folders are found at the same level or if directory access fails.
      */
     private async scanDirectory(
         dir: string,
@@ -68,7 +96,7 @@ export class ApiRouter {
         let dynamicFolderFound = false;
 
         try {
-            const entries = readdirSync(dir, { withFileTypes: true });
+            const entries = await readdir(dir, { withFileTypes: true });
             for (const entry of entries) {
                 const entryPath = path.join(dir, entry.name);
                 const relativePath = path.join(basePath, entry.name);
@@ -104,30 +132,28 @@ export class ApiRouter {
     }
 
     /**
-     * Loads a route module and adds it to the routes array
-     * @param entryPath Full path to the route file
-     * @param relativePath Relative path used to construct the route
+     * Loads a route module from a file and inserts it into the trie.
+     * @param entryPath The full file system path to the route module (route.ts).
+     * @param relativePath The relative path used to construct the route path.
+     * @returns {Promise<void>} A promise that resolves when the module is loaded and inserted.
+     * @throws {Error} If the route module fails to load or is invalid.
      */
     private async loadRouteModule(
         entryPath: string,
         relativePath: string
     ): Promise<void> {
         try {
-            // Convert file path to route path and load the module
             const routePath = this.convertFilePathToRoute(relativePath);
             const modulePath = path.resolve(entryPath);
             const routeModule = await import(modulePath);
 
-            // Collect HTTP method handlers from the module
             const handlers: { [method: string]: RequestHandler } = {};
-
             for (const method of HTTP_METHODS) {
                 if (typeof routeModule[method] === 'function') {
                     handlers[method] = routeModule[method];
                 }
             }
 
-            // Create route definition
             const routeDef: RouteDefinition = {
                 path: routePath,
                 handlers,
@@ -136,7 +162,7 @@ export class ApiRouter {
                 openapi: routeModule.openapi,
             };
 
-            this.routes.push(routeDef);
+            this.insertRoute(routeDef);
         } catch (error) {
             throw new Error(
                 `Failed to load route module '${entryPath}': ${String(error)}`
@@ -145,10 +171,9 @@ export class ApiRouter {
     }
 
     /**
-     * Converts a file path to a route path by processing dynamic segments,
-     * removing certain directory indicators, and applying a prefix if specified.
-     * @param filePath The file path to convert into a route path.
-     * @returns The converted route path string.
+     * Converts a file path to a route path by processing dynamic segments and applying the prefix.
+     * @param filePath The file path to convert (e.g., "users/[id]/route.ts").
+     * @returns {string} The converted route path (e.g., "/users/:id").
      */
     private convertFilePathToRoute(filePath: string): string {
         // Remove the "route.ts" suffix
@@ -202,9 +227,10 @@ export class ApiRouter {
     }
 
     /**
-     * Resolves the given request by finding a matching route and extracting dynamic parameters.
-     * @param request The request to resolve.
-     * @returns An object containing the matched route and parameters, or an empty params object if no match.
+     * Resolves a request to a route definition and its parameters.
+     * @param request The incoming HTTP request to resolve.
+     * @returns {{ route?: RouteDefinition; params: Record<string, string> }} An object containing the matched route (if any) and extracted parameters.
+     * @throws {Error} If the request URL is malformed.
      */
     public resolve(request: Request): {
         route?: RouteDefinition;
@@ -212,51 +238,31 @@ export class ApiRouter {
     } {
         try {
             const url = new URL(request.url);
-            const reqPath = normalizePath(url.pathname);
+            const reqPath = normalizePath(url.pathname); // Use normalizePath for consistency
             const method = request.method.toUpperCase();
+            const segments = reqPath.split('/').filter(Boolean);
 
-            for (const route of this.routes) {
-                const match = this.matchRoute(reqPath, route.path);
-                if (match && route.handlers[method]) {
-                    return { route, params: match };
+            let node = this.root;
+            const params: Record<string, string> = {};
+
+            for (const segment of segments) {
+                if (node.children.has(segment)) {
+                    node = node.children.get(segment)!;
+                } else if (node.paramChild) {
+                    node = node.paramChild;
+                    params[node.paramName!] = segment;
+                } else {
+                    return { params: {} };
                 }
+            }
+
+            if (node.route && node.route.handlers[method]) {
+                return { route: node.route, params };
             }
             return { params: {} };
         } catch (error) {
-            // Return no match in case of URL parsing errors
+            // Minimal handling: return empty result instead of wrapping error
             return { params: {} };
         }
-    }
-
-    /**
-     * Checks if the request path matches the route path, extracting dynamic parameters if matched.
-     * @param requestPath The request path to check.
-     * @param routePath The route path to match against.
-     * @returns A record of dynamic parameters if matched, otherwise null.
-     */
-    private matchRoute(
-        requestPath: string,
-        routePath: string
-    ): Record<string, string> | null {
-        const reqSegments = requestPath.split('/').filter(Boolean);
-        const routeSegments = routePath.split('/').filter(Boolean);
-
-        if (reqSegments.length !== routeSegments.length) {
-            return null;
-        }
-
-        const params: Record<string, string> = {};
-        for (let i = 0; i < reqSegments.length; i++) {
-            const rSegment = routeSegments[i];
-            const reqSegment = reqSegments[i];
-
-            if (rSegment.startsWith(ROUTE_CONSTANTS.DYNAMIC_SEGMENT_PREFIX)) {
-                const paramName = rSegment.slice(1);
-                params[paramName] = decodeURIComponent(reqSegment);
-            } else if (rSegment !== reqSegment) {
-                return null;
-            }
-        }
-        return params;
     }
 }
