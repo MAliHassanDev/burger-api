@@ -15,7 +15,9 @@ import type {
     BurgerRequest,
     BurgerResponse,
     BurgerNext,
+    RequestHandler,
 } from '@burgerTypes';
+import type { HTMLBundle } from 'bun';
 
 export class Burger {
     private server: Server;
@@ -68,7 +70,7 @@ export class Burger {
      */
     async serve(port: number = 4000, cb?: () => void): Promise<void> {
         // File-based routing mode
-        const routes: { [key: string]: any } = {};
+        const routes: { [key: string]: HTMLBundle | RequestHandler } = {};
 
         // Handle page routes
         if (this.pageRouter) {
@@ -105,12 +107,11 @@ export class Burger {
                             return res.json(doc);
                         } else {
                             // Return a descriptive error if router is not available
-                            return res
-                                .status(500)
-                                .json({ 
-                                    error: 'API Router not configured', 
-                                    message: 'Please provide an apiDir option when initializing the Burger instance to enable OpenAPI documentation.'
-                                });
+                            return res.status(500).json({
+                                error: 'API Router not configured',
+                                message:
+                                    'Please provide an apiDir option when initializing the Burger instance to enable OpenAPI documentation.',
+                            });
                         }
                     }
 

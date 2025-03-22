@@ -11,7 +11,7 @@ examples/
 .prettierrc
 tsconfig.json
 bun.lockb
-
+bun-experiment/*
 # Test files
 __tests__/
 *.test.ts
