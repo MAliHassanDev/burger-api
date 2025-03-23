@@ -294,3 +294,10 @@ export interface PageDefinition {
     handler: RequestHandler;
     middleware?: RequestHandler[];
 }
+
+export interface TrieNode {
+    children: Map<string, TrieNode>; // Normal path pieces, like "users"
+    paramChild?: TrieNode; // For dynamic pieces, like ":id"
+    paramName?: string; // Name of the dynamic piece, like "id"
+    route?: RouteDefinition; // The route definition for the node
+}

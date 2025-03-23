@@ -60,10 +60,14 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
         const validated: BurgerRequest['validated'] = {};
 
         // Validate URL parameters (if available and schema provided).
-        // (Assume that middleware upstream attaches route params to req.params.)
         if (methodSchema.params && req.params) {
             try {
-                validated.params = methodSchema.params.safeParse(req.params);
+                const result = methodSchema.params.safeParse(req.params);
+                if (result.success) {
+                    validated.params = result.data;
+                } else {
+                    errors.push({ field: 'params', error: result.error });
+                }
             } catch (e: any) {
                 errors.push({ field: 'params', error: e.errors });
             }
@@ -72,9 +76,14 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
         // Validate query parameters.
         if (methodSchema.query) {
             try {
-                validated.query = methodSchema.query.safeParse(
+                const result = methodSchema.query.safeParse(
                     Object.fromEntries(req.query.entries())
                 );
+                if (result.success) {
+                    validated.query = result.data;
+                } else {
+                    errors.push({ field: 'query', error: result.error });
+                }
             } catch (e: any) {
                 errors.push({ field: 'query', error: e.errors });
             }
@@ -94,7 +103,12 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
                 try {
                     // Attempt to parse the JSON body.
                     const bodyData = await req.json();
-                    validated.body = methodSchema.body.safeParse(bodyData);
+                    const result = methodSchema.body.safeParse(bodyData);
+                    if (result.success) {
+                        validated.body = result.data;
+                    } else {
+                        errors.push({ field: 'body', error: result.error });
+                    }
                 } catch (e: any) {
                     errors.push({
                         field: 'body',
