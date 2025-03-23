@@ -151,8 +151,7 @@ export class ApiRouter {
     ): Promise<void> {
         try {
             const routePath = this.convertFilePathToRoute(relativePath);
-            console.log('Loading route:', routePath);
-
+            console.info('Loading route:', routePath);
             const modulePath = path.resolve(entryPath);
             const routeModule = await import(modulePath);
 
