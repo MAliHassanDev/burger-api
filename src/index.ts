@@ -18,6 +18,7 @@ import type {
     RequestHandler,
 } from '@burgerTypes';
 import type { HTMLBundle } from 'bun';
+import { normalizePath } from '@utils';
 
 export class Burger {
     private server: Server;
@@ -94,9 +95,11 @@ export class Burger {
                 async (req: BurgerRequest, res: BurgerResponse) => {
                     // Create URL object
                     const url = new URL(req.url);
+                    const pathname = url.pathname; // Use pre-extracted pathname
+                    const method = req.method.toUpperCase(); // Use pre-extracted method
 
                     // Check if the request is for /openapi.json
-                    if (url.pathname === '/openapi.json') {
+                    if (pathname === '/openapi.json') {
                         if (this.apiRouter) {
                             // Generate OpenAPI document
                             const doc = generateOpenAPIDocument(
@@ -116,12 +119,18 @@ export class Burger {
                     }
 
                     // Serve the Swagger UI at /docs
-                    if (url.pathname === '/docs') {
+                    if (pathname === '/docs') {
                         return res.html(swaggerHtml);
                     }
 
+                    // Normalize the pathname to ensure it's in the correct format
+                    const normalizedPathname = normalizePath(pathname);
+
                     // Get the route and params for the current request
-                    const { route, params } = this.apiRouter!.resolve(req);
+                    const { route, params } = this.apiRouter!.resolve(
+                        normalizedPathname,
+                        method
+                    );
 
                     if (!route) {
                         // Return a 404 if no route is found
@@ -134,7 +143,7 @@ export class Burger {
                     req.params = params;
 
                     // Get the handler for the current HTTP method
-                    const method = req.method.toUpperCase();
+
                     const handler = route.handlers[method];
                     if (!handler) {
                         // Return a 405 if no handler is found
@@ -143,47 +152,56 @@ export class Burger {
                             .json({ error: 'Method Not Allowed' });
                     }
 
-                    /**
-                     * Build the middleware composition chain.
-                     * 1. Compose the Route-Specific Chain
-                     * 2. Insert Validation Middleware (if a schema exists)
-                     * 3. Insert Global Middleware
-                     * 4. Execute the handler
-                     */
+                    // Create a new array to store the middleware chain
+                    const middlewaresToRun: Middleware[] = [
+                        // Global middleware first
+                        ...this.globalMiddleware,
+                        // Validation middleware next (if schema exists)
+                        ...(route.schema
+                            ? [createValidationMiddleware(route.schema)]
+                            : []),
+                        // Route-specific middleware last
+                        ...(route.middleware || []),
+                    ];
 
-                    // 1. Compose the Route-Specific Chain
-                    let routeChain = async () => handler(req, res);
-                    if (route.middleware && route.middleware.length > 0) {
-                        // Wrap route-specific middleware (in reverse order to preserve order of execution)
-                        for (const mw of route.middleware.slice().reverse()) {
-                            const next: BurgerNext = routeChain;
-                            routeChain = async () => mw(req, res, next);
+                    // Create a new index variable to track the current middleware
+                    let index = -1;
+                    // Define the single recursive next function
+                    const next = async (): Promise<Response> => {
+                        index++; // Move to the next middleware/handler
+
+                        if (index < middlewaresToRun.length) {
+                            // If there's middleware left, call it, passing the SAME next function
+                            try {
+                                return await middlewaresToRun[index](
+                                    req,
+                                    res,
+                                    next
+                                );
+                            } catch (middlewareError) {
+                                // If a middleware throws, catch it and let the main error handler deal with it
+                                console.error(
+                                    'Error caught in API middleware chain:',
+                                    middlewareError
+                                );
+                                throw middlewareError; // Re-throw to be caught by the main fetch try/catch
+                            }
+                        } else {
+                            // If no middleware left, call the final API handler
+                            try {
+                                return await handler(req, res);
+                            } catch (handlerError) {
+                                console.error(
+                                    'Error caught in API handler:',
+                                    handlerError
+                                );
+                                throw handlerError; // Re-throw to be caught by the main fetch try/catch
+                            }
                         }
-                    }
+                    };
 
-                    // 2. Insert Validation Middleware (if a schema exists)
-                    let composedChain = routeChain;
-                    if (route.schema) {
-                        const validationMw = createValidationMiddleware(
-                            route.schema
-                        );
-                        composedChain = async () =>
-                            validationMw(req, res, routeChain);
-                    }
-
-                    // 3. Wrap Global Middleware (in reverse order so that the first-added runs first)
-                    let finalHandler = composedChain;
-                    if (this.globalMiddleware.length > 0) {
-                        for (const mw of this.globalMiddleware
-                            .slice()
-                            .reverse()) {
-                            const next: BurgerNext = finalHandler;
-                            finalHandler = async () => mw(req, res, next);
-                        }
-                    }
-
-                    // Execute the full chain
-                    return await finalHandler();
+                    // Start the middleware chain execution by calling next() for the first time
+                    return await next();
                 },
                 port,
                 cb

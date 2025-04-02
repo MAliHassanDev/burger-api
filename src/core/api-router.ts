@@ -236,19 +236,20 @@ export class ApiRouter {
 
     /**
      * Resolves a request to a route definition and its parameters.
-     * @param request The incoming HTTP request to resolve.
+     * @param pathname  The normalized request pathname.
+     * @param method The uppercase HTTP method.
      * @returns {{ route?: RouteDefinition; params: Record<string, string> }} An object containing the matched route (if any) and extracted parameters.
      * @throws {Error} If the request URL is malformed.
      */
-    public resolve(request: Request): {
+    public resolve(
+        pathname: string,
+        method: string
+    ): {
         route?: RouteDefinition;
         params: Record<string, string>;
     } {
         try {
-            const url = new URL(request.url);
-            const reqPath = normalizePath(url.pathname);
-            const method = request.method.toUpperCase();
-            const segments = reqPath.split('/').filter(Boolean);
+            const segments = pathname.split('/').filter(Boolean);
 
             let node = this.root;
             const params: Record<string, string> = {};
@@ -269,6 +270,11 @@ export class ApiRouter {
             }
             return { params: {} };
         } catch (error) {
+            // Log the error for better debugging
+            console.error(
+                `Error resolving API route for path "${pathname}":`,
+                error
+            );
             return { params: {} };
         }
     }

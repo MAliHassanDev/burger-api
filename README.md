@@ -5,6 +5,7 @@
 [![Under Development](https://img.shields.io/badge/under%20development-red.svg)](https://github.com/isfhan/burger-api)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Bun](https://img.shields.io/badge/Bun-1.2.4-black?logo=bun)](https://bun.sh)
+[![Version](https://img.shields.io/badge/version-0.1.5-green.svg)](https://github.com/isfhan/burger-api/releases)
 
 **burger-api** is a modern, open source API framework built on
 [Bun.js](https://bun.sh). It combines the simplicity of file-based routing with
@@ -115,15 +116,21 @@ burger-api is built to offer a robust developer experience through:
 
 For detailed release notes, please refer to the [Changelog](CHANGELOG.md) file.
 
-### Version 0.1.3 (March 15, 2024)
+### Latest Version: 0.1.5 (April 2, 2024)
 
--   🔄 **Bug Fixes and Improvements:**
-    -   Enhanced page routing and server response handling
-    -   Improved import paths configuration in tsconfig.json
-    -   Updated request/response handling
-    -   Enhanced server initialization process
-    -   Improved native types handling
-    -   Updated server response functionality
+-   ⚡ **Performance & Core Improvements:**
+
+    -   Enhanced request handling and middleware execution
+    -   Implemented trie structure for optimized route management
+    -   Improved route collection and validation
+    -   Enhanced OpenAPI integration
+
+-   🔧 **Dependencies & Build:**
+    -   Updated dependencies to latest versions
+    -   Enhanced build process with tsc-alias
+    -   Improved TypeScript configuration
+
+For a complete list of changes, please check the [Changelog](CHANGELOG.md) file.
 
 ## 🎯 What's Coming Next?
 

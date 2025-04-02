@@ -1,6 +1,24 @@
 ## 📣 Release Notes
 
-### Version 0.1.4 (March 15, 2024)
+### Version 0.1.5 (April 2, 2024)
+
+-   🔧 **Dependencies & Build:**
+    -   Updated dependencies to latest versions
+    -   Enhanced build process with tsc-alias
+    -   Improved TypeScript configuration
+
+-   📦 **Package Updates:**
+    -   Updated zod to version ^3.24.2
+    -   Updated zod-to-json-schema to version ^3.24.5
+    -   Updated TypeScript peer dependency to ^5.7.3
+
+-   ⚡ **Performance & Core Improvements:**
+    -   Enhanced request handling and middleware execution in Burger class
+    -   Implemented trie structure for optimized route management
+    -   Improved route collection and validation in ApiRouter
+    -   Enhanced OpenAPI integration with better route handling
+
+### Version 0.1.4 (March 23, 2024)
 
 -   🎨 **Code Quality & Standards:**
 
