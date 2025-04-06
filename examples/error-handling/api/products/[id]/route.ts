@@ -24,7 +24,7 @@ export const schema = {
             id: z.preprocess((val) => {
                 if (typeof val === 'string') {
                     const parsed = parseInt(val, 10);
-                    return isNaN(parsed) ? undefined : parsed;
+                    return isNaN(parsed) ? 'string' : parsed;
                 }
                 return val;
             }, z.number().min(1, 'ID is required')),
