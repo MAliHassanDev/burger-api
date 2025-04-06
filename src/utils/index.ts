@@ -1,3 +1,4 @@
+import type { TrieNode, RouteDefinition } from '@src/types';
 import { resolve } from 'path';
 
 // Export constants
@@ -51,4 +52,38 @@ export function normalizePath(path: string): string {
     }
 
     return normalized;
+}
+
+/**
+ * Collects all routes from the trie and returns them as an array of RouteDefinition objects.
+ * @param node The current node in the trie.
+ * @param currentPath The current path being traversed.
+ * @param routes The array of collected routes.
+ * @returns An array of RouteDefinition objects.
+ */
+export function collectRoutes(
+    node: TrieNode,
+    currentPath: string = '',
+    routes: RouteDefinition[] = []
+): RouteDefinition[] {
+    // If this node has a route definition, add it
+    if (node.route) {
+        routes.push({
+            ...node.route,
+            path: currentPath,
+        });
+    }
+
+    // Traverse static children
+    node.children.forEach((child: TrieNode, segment: string) => {
+        collectRoutes(child, `${currentPath}/${segment}`, routes);
+    });
+
+    // Traverse dynamic child if exists
+    if (node.paramChild) {
+        const paramPath = `${currentPath}/:${node.paramChild.paramName}`;
+        collectRoutes(node.paramChild, paramPath, routes);
+    }
+
+    return routes;
 }

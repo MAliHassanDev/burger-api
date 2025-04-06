@@ -1,8 +1,7 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 // Import types
-import type { ApiRouter } from '@core/api-router.js';
-import type { ServerOptions, TrieNode, RouteDefinition } from '@burgerTypes';
+import type { ServerOptions, RouteDefinition } from '@burgerTypes';
 
 /**
  * Builds an array of OpenAPI 3.0 parameters based on the Zod schema.
@@ -80,48 +79,8 @@ function convertPathForOpenAPI(routePath: string): string {
     return routePath.replace(/:([a-zA-Z0-9_]+)/g, '{$1}');
 }
 
-/**
- * Collects all routes from the trie and returns them as an array of RouteDefinition objects.
- * @param node The current node in the trie.
- * @param currentPath The current path being traversed.
- * @param routes The array of collected routes.
- * @returns An array of RouteDefinition objects.
- */
-function collectRoutes(
-    node: TrieNode,
-    currentPath: string = '',
-    routes: RouteDefinition[] = []
-): RouteDefinition[] {
-    // If this node has a route definition, add it
-    if (node.route) {
-        routes.push({
-            ...node.route,
-            path: currentPath,
-        });
-    }
-
-    // Traverse static children
-    node.children.forEach((child: TrieNode, segment: string) => {
-        collectRoutes(child, `${currentPath}/${segment}`, routes);
-    });
-
-    // Traverse dynamic child if exists
-    if (node.paramChild) {
-        const paramPath = `${currentPath}/:${node.paramChild.paramName}`;
-        collectRoutes(node.paramChild, paramPath, routes);
-    }
-
-    return routes;
-}
-
-/**
- * Generates an OpenAPI 3.0 document from the router's routes and global options.
- * @param router The router instance with loaded routes.
- * @param options Global options, including OpenAPI metadata.
- * @returns The OpenAPI document as a JavaScript object.
- */
 export function generateOpenAPIDocument(
-    router: ApiRouter,
+    apiRoutes: RouteDefinition[],
     options: ServerOptions
 ) {
     const openapiDoc = {
@@ -134,11 +93,8 @@ export function generateOpenAPIDocument(
         paths: {} as Record<string, any>,
     };
 
-    // Collect all routes from the trie
-    const routes = collectRoutes(router.routes);
-
     // Iterate over each route
-    for (const route of routes) {
+    for (const route of apiRoutes) {
         // Convert colon-based dynamic segments to OpenAPI's {param} syntax
         const openApiPath = convertPathForOpenAPI(route.path);
 

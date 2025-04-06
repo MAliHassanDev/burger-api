@@ -1,19 +1,10 @@
 // Import stuff from Bun
 import { serve } from 'bun';
 
-// Import stuff from core
-import { HttpRequest } from '@core/request.js';
-import { HttpResponse } from '@core/response.js';
-
 // Import stuff from utils
 import { errorResponse } from '@utils/error.js';
 
-import type {
-    ServerOptions,
-    RequestHandler,
-    BurgerRequest,
-    BurgerResponse,
-} from '@burgerTypes';
+import type { ServerOptions, FetchHandler } from '@burgerTypes';
 
 export class Server {
     private options: ServerOptions;
@@ -27,36 +18,19 @@ export class Server {
         this.options = options;
     }
 
-    /**
-     * Starts the server with the given routes, handler, port, and callback.
-     * @param routes - The routes to be used by the server.
-     * @param handler - The handler to be used by the server.
-     * @param port - The port to listen on.
-     * @param cb - An optional callback function to be called when the server starts.
-     */
     public start(
         routes: { [key: string]: any } | undefined,
-        handler: RequestHandler,
+        handler: FetchHandler,
         port: number,
         cb?: () => void
     ): void {
         // Start Bun's native server using Bun.serve
         this.server = serve({
             routes,
-            // Burger's fetch handler
+            // Bun's fetch handler
             fetch: async (request: Request) => {
                 try {
-                    // Wrap the native Request with HttpRequest to get a BurgerRequest
-                    const burgerReq = new HttpRequest(
-                        request
-                    ) as unknown as BurgerRequest;
-
-                    // Wrap the native Response with HttpResponse to get a BurgerResponse
-                    const burgerRes =
-                        new HttpResponse() as unknown as BurgerResponse;
-
-                    // Invoke and return the handler with the wrapped requests and responses
-                    return await handler(burgerReq, burgerRes);
+                    return await handler(request);
                 } catch (error) {
                     // Return a custom error response
                     return errorResponse(
@@ -66,12 +40,24 @@ export class Server {
                     );
                 }
             },
+            // Global error handler
+            error(error) {
+                console.error(error);
+                return new Response(`Internal Server Error: ${error.message}`, {
+                    status: 500,
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                });
+            },
             port,
         });
         if (cb) {
             cb();
         } else {
-            console.log(`✔ Server started on port: ${port}`);
+            console.log(
+                `🍔 BurgerAPI is running at: http://${this.options.hostname || 'localhost'}:${port}`
+            );
         }
     }
 

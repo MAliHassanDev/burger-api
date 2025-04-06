@@ -1,9 +1,9 @@
 import type { BurgerRequest, BurgerResponse } from '@src';
 
-export async function GET(req: BurgerRequest, res: BurgerResponse) {
+export async function GET(req: BurgerRequest) {
     console.log('[GET] Product Detail route invoked');
 
-    return res.json({
+    return Response.json({
         name: 'Sample Product',
     });
 }

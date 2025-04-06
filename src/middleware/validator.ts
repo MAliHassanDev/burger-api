@@ -3,28 +3,14 @@ import type {
     RouteSchema,
     Middleware,
     BurgerRequest,
-    BurgerResponse,
     BurgerNext,
 } from '@burgerTypes';
 
-/**
- * Creates a middleware function that validates request data according to the
- * given schema for the current HTTP method.
- *
- * @param schema - The route schema to validate against.
- * @returns A middleware function that validates request data and attaches the
- * validated data to the request if successful, or returns a 400 response with
- * error details if validation fails.
- */
 export function createValidationMiddleware(schema: RouteSchema): Middleware {
-    return async (
-        req: BurgerRequest,
-        res: BurgerResponse,
-        next: BurgerNext
-    ) => {
+    return async (req: BurgerRequest, next: BurgerNext) => {
         // If the request has been validated, continue.
         if (req.validated) {
-            return await next();
+            return next();
         }
 
         // Determine the HTTP method (in lowercase) to match the schema.
@@ -38,15 +24,18 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
             return await next();
         }
 
+        // Get the schemas for the current method.
+        const paramsSchema = methodSchema.params;
+        const querySchema = methodSchema.query;
+        const bodySchema = methodSchema.body;
+
         /**
          * Array to collect validation errors.
          * Each error contains a `field` indicating the part of the request that failed validation,
          * and an `error` providing details about the validation failure.
          */
-        const errors: {
-            field: string;
-            error: any;
-        }[] = [];
+        const errors = new Array(3); // Pre-allocate for params, query, body
+        let errorCount = 0;
 
         /**
          * Object to store validated request data. This will be attached to the
@@ -60,73 +49,80 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
         const validated: BurgerRequest['validated'] = {};
 
         // Validate URL parameters (if available and schema provided).
-        if (methodSchema.params && req.params) {
+        if (paramsSchema && req.params) {
             try {
-                const result = methodSchema.params.safeParse(req.params);
+                const result = paramsSchema.safeParse(req.params);
                 if (result.success) {
                     validated.params = result.data;
                 } else {
-                    errors.push({ field: 'params', error: result.error });
+                    errors[errorCount++] = {
+                        field: 'params',
+                        error: result.error,
+                    };
                 }
             } catch (e: any) {
-                errors.push({ field: 'params', error: e.errors });
+                errors[errorCount++] = { field: 'params', error: e.errors };
             }
         }
 
         // Validate query parameters.
-        if (methodSchema.query) {
+        const url = new URL(req.url);
+        const queryParams = Object.fromEntries(url.searchParams.entries());
+
+        if (querySchema) {
             try {
-                const result = methodSchema.query.safeParse(
-                    Object.fromEntries(req.query.entries())
-                );
+                const result = querySchema.safeParse(queryParams);
                 if (result.success) {
                     validated.query = result.data;
                 } else {
-                    errors.push({ field: 'query', error: result.error });
+                    errors[errorCount++] = {
+                        field: 'query',
+                        error: result.error,
+                    };
                 }
             } catch (e: any) {
-                errors.push({ field: 'query', error: e.errors });
+                errors[errorCount++] = { field: 'query', error: e.errors };
             }
         }
 
         // Validate request body.
-        if (methodSchema.body) {
-            // Check the Content-Type header.
-            const contentType = req.headers.get('Content-Type') || '';
-            if (!contentType.includes('application/json')) {
-                // If not JSON, push an error indicating the expected content type.
-                errors.push({
-                    field: 'body',
-                    error: "Invalid Content-Type. Expected 'application/json'.",
-                });
-            } else {
-                try {
-                    // Attempt to parse the JSON body.
-                    const bodyData = await req.json();
-                    const result = methodSchema.body.safeParse(bodyData);
-                    if (result.success) {
-                        validated.body = result.data;
-                    } else {
-                        errors.push({ field: 'body', error: result.error });
-                    }
-                } catch (e: any) {
-                    errors.push({
+        if (
+            bodySchema &&
+            req.headers.get('Content-Type')?.includes('application/json')
+        ) {
+            try {
+                // Attempt to parse the JSON body.
+                const bodyData = await req.json();
+                const result = bodySchema.safeParse(bodyData);
+                if (result.success) {
+                    // Set the validated body.
+                    validated.body = result.data;
+
+                    // Set the json method to return the validated body.
+                    req.json = () => result.data;
+                } else {
+                    errors[errorCount++] = {
                         field: 'body',
-                        error: e.errors || e.message,
-                    });
+                        error: result.error,
+                    };
                 }
+            } catch (e: any) {
+                errors[errorCount++] = {
+                    field: 'body',
+                    error: e.errors || e.message,
+                };
             }
         }
 
-        if (errors.length > 0) {
+        if (errorCount > 0) {
             // If validation fails, return a 400 response with error details.
-            return res.status(400).json({ errors });
+            return Response.json({ errors }, { status: 400 });
         }
 
         // Attach validated data to the request.
         req.validated = validated;
 
         // Continue to the next middleware or handler.
-        return await next();
+        return next();
     };
 }

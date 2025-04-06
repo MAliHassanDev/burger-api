@@ -1,25 +1,11 @@
-import type {
-    Middleware,
-    BurgerRequest,
-    BurgerResponse,
-    BurgerNext,
-} from '@burgerTypes';
+import type { Middleware, BurgerNext, BurgerRequest } from '@burgerTypes';
 
-/**
- * Example of a global middleware function. This middleware logs a message to
- * the console whenever it is executed.
- * @param req - The BurgerRequest object.
- * @param res - The BurgerResponse object.
- * @param next - The next middleware function to call.
- * @returns A Promise resolved with the response from the next middleware function.
- */
 export const globalMiddleware1: Middleware = async (
     req: BurgerRequest,
-    res: BurgerResponse,
     next: BurgerNext
 ) => {
-    console.log('Global middleware executed.');
+    console.log('Global middleware executed for request:', req.url);
 
     // Call the next middleware
-    return await next();
+    return next();
 };

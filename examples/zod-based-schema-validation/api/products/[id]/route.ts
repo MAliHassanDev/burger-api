@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 // Import types
-import type { BurgerRequest, BurgerResponse, BurgerNext } from '@src';
+import type { BurgerNext, BurgerRequest } from '@src';
 
 // Export a schema for GET requests.
 export const schema = {
@@ -15,19 +15,20 @@ export const schema = {
 
 // Route-specific middleware
 export const middleware = [
-    async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
-        console.log('Product Detail Route-specific middleware executed');
-        return await next();
+    async (req: BurgerRequest, next: BurgerNext) => {
+        console.log(
+            'Product Detail Route-specific middleware executed for request:',
+            req.url
+        );
+        return next();
     },
 ];
 
 export async function GET(
-    req: BurgerRequest<{ params: z.infer<typeof schema.get.params> }>,
-    res: BurgerResponse
+    req: BurgerRequest<{ params: z.infer<typeof schema.get.params> }>
 ) {
-    const validatedParams = req.validated?.params;
-    return res.json({
-        id: validatedParams,
+    return Response.json({
+        id: req.validated?.params.id,
         name: 'John Doe',
     });
 }
