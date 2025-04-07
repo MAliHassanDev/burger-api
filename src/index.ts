@@ -25,6 +25,7 @@ export class Burger {
     private apiRouter?: ApiRouter;
     private pageRouter?: PageRouter;
     private globalMiddleware: Middleware[] = [];
+    private openApiDoc: any = null;
     private routes: {
         [key: string]: HTMLBundle | RequestHandler;
     } = {};
@@ -64,15 +65,28 @@ export class Burger {
      * @returns A Promise that resolves when the server has started listening.
      */
     async serve(port: number = 4000, cb?: () => void): Promise<void> {
+        // Flag to track if any routes were loaded
+        let routesConfigured = false;
+
         // Handle page routes
         if (this.pageRouter) {
             // Load Page routes
             await this.pageRouter.loadPages();
             // If there are any page routes, add them to the routes object
             const pagesRoutes = this.pageRouter.pages;
-            for (let i = 0; i < pagesRoutes.length; i++) {
-                const pageRoute = pagesRoutes[i];
-                this.routes[pageRoute.path] = pageRoute.handler;
+            // Get the length of the pages routes
+            const pagesRoutesLength = pagesRoutes.length;
+            // Check if pages were actually found
+            if (pagesRoutesLength > 0) {
+                // Set the flag to true
+                routesConfigured = true;
+                // Loop through the pages routes
+                for (let i = 0; i < pagesRoutesLength; i++) {
+                    // Get the current page route
+                    const pageRoute = pagesRoutes[i];
+                    // Add the page route to the routes object
+                    this.routes[pageRoute.path] = pageRoute.handler;
+                }
             }
         }
 
@@ -80,14 +94,19 @@ export class Burger {
         if (this.apiRouter) {
             // Load API routes
             await this.apiRouter.loadRoutes();
-            // console.dir(collectRoutes(this.apiRouter.routes), { depth: null });
 
             // Collect API routes
             const apiRoutes = collectRoutes(this.apiRouter.routes);
 
+            // Generate OpenAPI document
+            this.openApiDoc = generateOpenAPIDocument(apiRoutes, this.options);
+
             const apiRoutesLength = apiRoutes.length;
             // If there are any API routes, add them to the routes object
             if (apiRoutesLength > 0) {
+                // Set the flag to true
+                routesConfigured = true;
+
                 for (let i = 0; i < apiRoutesLength; i++) {
                     /**
                      * ================================================
@@ -196,10 +215,8 @@ export class Burger {
 
                 // Add special routes for OpenAPI
                 this.routes['/openapi.json'] = async () => {
-                    return this.apiRouter
-                        ? Response.json(
-                              generateOpenAPIDocument(apiRoutes, this.options)
-                          )
+                    return this.openApiDoc
+                        ? Response.json(this.openApiDoc)
                         : Response.json({
                               error: 'API Router not configured',
                               message:
@@ -214,7 +231,10 @@ export class Burger {
                     });
                 };
             }
+        }
 
+        // If routes were configured, start the server
+        if (routesConfigured) {
             // Start the server
             this.server.start(
                 this.routes,
@@ -227,11 +247,10 @@ export class Burger {
                 cb
             );
         } else {
-            if (!this.pageRouter) {
-                console.error(
-                    'Error: No routes configured! Please provide either apiDir or pageDir when initializing the Burger Class.'
-                );
-            }
+            // If no routes were configured, log an error
+            console.error(
+                'Error: No routes configured! Please provide either apiDir with route.ts files or pageDir with html files when initializing the Burger Class.'
+            );
         }
     }
 }
