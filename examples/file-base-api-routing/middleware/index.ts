@@ -1,11 +1,10 @@
-import type { Middleware, BurgerNext, BurgerRequest } from '@burgerTypes';
+import type { Middleware, BurgerNext, BurgerRequest } from '@src';
 
-export const globalMiddleware1: Middleware = async (
-    request: BurgerRequest,
-    next: BurgerNext
-) => {
+export const globalMiddleware1: Middleware = (
+    request: BurgerRequest
+): BurgerNext => {
     console.log('Global middleware executed for request:', request.url);
 
     // Call the next middleware
-    return next();
+    return undefined;
 };

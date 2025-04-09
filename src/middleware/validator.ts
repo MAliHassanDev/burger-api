@@ -7,10 +7,10 @@ import type {
 } from '@burgerTypes';
 
 export function createValidationMiddleware(schema: RouteSchema): Middleware {
-    return async (req: BurgerRequest, next: BurgerNext) => {
+    return async (req: BurgerRequest): Promise<BurgerNext> => {
         // If the request has been validated, continue.
         if (req.validated) {
-            return next();
+            return undefined; // Proceed to the next middleware or handler
         }
 
         // Determine the HTTP method (in lowercase) to match the schema.
@@ -21,7 +21,7 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
 
         // If there's no schema for this method, continue.
         if (!methodSchema) {
-            return await next();
+            return undefined; // Proceed to the next middleware or handler
         }
 
         // Get the schemas for the current method.
@@ -123,6 +123,6 @@ export function createValidationMiddleware(schema: RouteSchema): Middleware {
         req.validated = validated;
 
         // Continue to the next middleware or handler.
-        return next();
+        return undefined; // Proceed
     };
 }

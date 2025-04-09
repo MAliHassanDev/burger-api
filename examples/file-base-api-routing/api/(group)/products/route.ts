@@ -1,4 +1,4 @@
-import type { BurgerRequest } from '@src/types';
+import type { BurgerRequest } from '@src';
 
 export function GET(req: BurgerRequest) {
     const query = new URL(req.url).searchParams;

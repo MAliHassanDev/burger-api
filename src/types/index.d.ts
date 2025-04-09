@@ -200,25 +200,54 @@ export interface BurgerResponse {
 }
 
 /**
- * Represents a next function in the request handling pipeline.
- * This function is used to call the next middleware in the chain.
- * It returns a Promise that resolves with a Response object.
+ * Represents what a middleware can return to control the request flow:
+ * - Response: Immediately send this response back to the client
+ * - Function: Continue processing, but transform the final response
+ * - undefined: Continue to the next middleware or handler
  */
-export type BurgerNext = () => Promise<Response>;
+export type BurgerNext =
+    | Response
+    | ((response: Response) => Promise<Response>)
+    | undefined;
 
+/**
+ * A middleware function that processes HTTP requests before they reach the final handler.
+ *
+ * What middleware can do:
+ * - Change the request (add data, modify headers, etc.)
+ * - Check if the request is valid
+ * - Stop the request by returning a Response
+ * - Let the request continue by returning undefined
+ * - Transform the final response by returning a function
+ *
+ * @param request - The HTTP request with Burger framework enhancements
+ * @returns One of three things:
+ *          - Response: Stop here, send this response back
+ *          - Function: Continue processing, but transform the final response
+ *          - undefined: I'm done, continue to the next step
+ */
+export type Middleware =
+    | ((request: BurgerRequest) => Promise<BurgerNext>)
+    | ((request: BurgerRequest) => BurgerNext);
+
+/**
+ * A request handler function that processes incoming HTTP requests.
+ * @param request - The BurgerRequest object containing request object.
+ * @returns A Response object or a Promise that resolves to a Response object.
+ */
 export type RequestHandler = (
     request: BurgerRequest
 ) => Promise<Response> | Response;
 
+/**
+ * A fetch handler function that can be used to handle a request.
+ * This can be a function that returns a Promise of a Response,
+ * or a function that returns a Response.
+ */
 export type FetchHandler = (
     request: Request,
     server?: Server
 ) => Promise<Response> | Response;
-
-export type Middleware = (
-    request: BurgerRequest,
-    next: BurgerNext
-) => Promise<Response>;
 
 export interface RouteDefinition {
     /**
