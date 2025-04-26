@@ -70,12 +70,12 @@
   },
   "homepage": "https://burger-api-docs.vercel.app",
   "dependencies": {
-    "zod": "^3.24.2",
+    "zod": "^3.24.3",
     "zod-to-json-schema": "^3.24.5"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "tsc-alias": "^1.8.13"
+    "tsc-alias": "^1.8.15"
   },
   "peerDependencies": {
     "typescript": "^5.7.3"
