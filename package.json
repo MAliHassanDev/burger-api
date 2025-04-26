@@ -1,6 +1,6 @@
 {
   "name": "burger-api",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Isfhan Ahmed",
   "type": "module",
   "module": "dist/src/index.js",
@@ -68,7 +68,7 @@
   "bugs": {
     "url": "https://github.com/isfhan/burger-api/issues"
   },
-  "homepage": "https://burger-api-docs.vercel.app",
+  "homepage": "https://burger-api.com",
   "dependencies": {
     "zod": "^3.24.3",
     "zod-to-json-schema": "^3.24.5"
