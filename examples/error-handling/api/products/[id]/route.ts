@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 // Import types
-import type { BurgerRequest, BurgerResponse, BurgerNext } from '@burgerTypes';
+import type { BurgerRequest, BurgerNext, Middleware } from '@burgerTypes';
 
 // OpenAPI Metadata
 // Developers can provide custom metadata to enrich the docs.
@@ -24,7 +24,7 @@ export const schema = {
             id: z.preprocess((val) => {
                 if (typeof val === 'string') {
                     const parsed = parseInt(val, 10);
-                    return isNaN(parsed) ? undefined : parsed;
+                    return isNaN(parsed) ? 'string' : parsed;
                 }
                 return val;
             }, z.number().min(1, 'ID is required')),
@@ -37,10 +37,10 @@ export const schema = {
 };
 
 // Route-Specific Middleware
-export const middleware = [
-    async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
+export const middleware: Middleware[] = [
+    (req: BurgerRequest): BurgerNext => {
         console.log('Product Detail Middleware');
-        return next();
+        return undefined;
     },
 ];
 
@@ -48,15 +48,14 @@ export async function GET(
     req: BurgerRequest<{
         params: z.infer<typeof schema.get.params>;
         query: z.infer<typeof schema.get.query>;
-    }>,
-    res: BurgerResponse
+    }>
 ) {
     console.log('[GET] Dynamic Product route invoked');
 
     // Use validated parameters if available; otherwise, fallback to resolved params.
     const validatedParams = req.validated.params;
     const query = req.validated.query;
-    return res.json({
+    return Response.json({
         id: validatedParams?.id,
         query: query,
         name: 'Sample Product',

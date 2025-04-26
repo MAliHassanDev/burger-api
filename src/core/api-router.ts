@@ -150,12 +150,20 @@ export class ApiRouter {
         relativePath: string
     ): Promise<void> {
         try {
+            // Convert the file path to a route path
             const routePath = this.convertFilePathToRoute(relativePath);
             console.info('Loading route:', routePath);
+
+            // Get the module path like "D:\\Projects\\src\\api\\users\\route.ts"
             const modulePath = path.resolve(entryPath);
+
+            // Import the module
             const routeModule = await import(modulePath);
 
+            // Variable to store the handlers for each method
             const handlers: { [method: string]: RequestHandler } = {};
+
+            // Loop through all the HTTP methods and add the handler to the handlers object
             for (const method of HTTP_METHODS) {
                 if (typeof routeModule[method] === 'function') {
                     handlers[method] = routeModule[method];

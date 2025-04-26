@@ -5,6 +5,10 @@ import { PageRouter } from '@core/page-router.js';
 import { generateOpenAPIDocument } from '@core/openapi.js';
 import { swaggerHtml } from '@core/swagger-ui.js';
 
+// Import utils
+import { collectRoutes } from '@utils';
+import { METHOD_NOT_ALLOWED, NOT_FOUND, OPENAPI_ERROR } from '@utils/response';
+
 // Import middleware
 import { createValidationMiddleware } from '@middleware/validator.js';
 
@@ -13,18 +17,57 @@ import type {
     ServerOptions,
     Middleware,
     BurgerRequest,
-    BurgerResponse,
-    BurgerNext,
     RequestHandler,
 } from '@burgerTypes';
 import type { HTMLBundle } from 'bun';
-import { normalizePath } from '@utils';
 
 export class Burger {
+    /**
+     * The server instance
+     */
     private server: Server;
+
+    /**
+     * The API router instance
+     */
     private apiRouter?: ApiRouter;
+
+    /**
+     * The page router instance
+     */
     private pageRouter?: PageRouter;
+
+    /**
+     * The global middleware
+     */
     private globalMiddleware: Middleware[] = [];
+
+    /**
+     * The OpenAPI document
+     */
+    private openApiDoc: any = null;
+
+    /**
+     * The routes object
+     */
+    private routes: {
+        [key: string]: HTMLBundle | RequestHandler;
+    } = {};
+
+    /**
+     * Pre-computed responses for reuse
+     */
+    private readonly METHOD_NOT_ALLOWED = METHOD_NOT_ALLOWED;
+
+    /**
+     * The not found response
+     */
+    private readonly NOT_FOUND = NOT_FOUND;
+
+    /**
+     * The OpenAPI error response
+     */
+    private readonly OPENAPI_ERROR = OPENAPI_ERROR;
 
     /**
      * Constructor for the Burger class.
@@ -36,31 +79,258 @@ export class Burger {
      * - middleware: An array of global middleware functions.
      */
     constructor(private options: ServerOptions) {
+        // Create server instance
         this.server = new Server(options);
-        // Initialize API router
-        if (options.apiDir) {
-            this.apiRouter = new ApiRouter(options.apiDir, 'api');
-        }
 
-        // Initialize page router
-        if (options.pageDir) {
-            this.pageRouter = new PageRouter(options.pageDir, '');
-        }
+        // Fast initialization for routers with nullish coalescing
+        const { apiDir, pageDir, apiPrefix, pagePrefix, globalMiddleware } =
+            options;
 
-        // Add global middleware
-        if (options.globalMiddleware) {
-            options.globalMiddleware.forEach((mw) =>
-                this.addGlobalMiddleware(mw)
-            );
-        }
+        // Initialize API router if apiDir is provided
+        this.apiRouter = apiDir
+            ? new ApiRouter(apiDir, apiPrefix || 'api')
+            : undefined;
+
+        // Initialize page router if pageDir is provided
+        this.pageRouter = pageDir
+            ? new PageRouter(pageDir, pagePrefix || '')
+            : undefined;
+
+        // Add global middleware if any
+        this.globalMiddleware = globalMiddleware?.length
+            ? globalMiddleware.slice()
+            : [];
     }
 
     /**
-     * Adds a global middleware function to the list of middlewares.
-     * @param mw - The middleware function to add.
+     * Process the page routes and add them to the routes object
+     * @returns A promise that resolves to a boolean
      */
-    addGlobalMiddleware(mw: Middleware) {
-        this.globalMiddleware.push(mw);
+    private async processPageRoutes(): Promise<boolean> {
+        // If no page router, return false
+        if (!this.pageRouter) return false;
+
+        // Load pages routes
+        await this.pageRouter.loadPages();
+        // If there are any page routes, add them to the routes object
+        const pages = this.pageRouter.pages;
+        // Get the length of the pages routes
+        const pageCount = pages.length;
+        // If no pages, return false
+        if (pageCount === 0) return false;
+
+        // Loop through the pages
+        for (let i = 0; i < pageCount; i++) {
+            // Get the current page
+            const page = pages[i];
+            // Add the page to the routes
+            this.routes[page.path] = page.handler;
+        }
+
+        // Return true if there are any pages
+        return true;
+    }
+
+    /**
+     * Process the API routes and add them to the routes object
+     * @returns A promise that resolves to a boolean
+     */
+    private async processApiRoutes(): Promise<boolean> {
+        // If no api router, return false
+        if (!this.apiRouter) return false;
+
+        // Load API routes
+        await this.apiRouter.loadRoutes();
+
+        // Collect API routes
+        const apiRoutes = collectRoutes(this.apiRouter.routes);
+
+        // Get the length of the API routes
+        const routeCount = apiRoutes.length;
+
+        // If there are no API routes, return false
+        if (routeCount === 0) return false;
+
+        // Generate OpenAPI document and cache it
+        this.openApiDoc = generateOpenAPIDocument(apiRoutes, this.options);
+
+        // Cache frequently accessed properties
+        const routes = this.routes;
+        // Get the global middleware
+        const globalMiddleware = this.globalMiddleware;
+        // Get the length of the global middleware
+        const globalMiddlewareLen = globalMiddleware.length;
+
+        // Process each route with optimized handler creation
+        for (let i = 0; i < routeCount; i++) {
+            /**
+             * ================================================
+             * Pre-compute the required functionality start
+             * ================================================
+             */
+
+            // Get the current route object
+            const route = apiRoutes[i];
+
+            // Destructure the route object
+            const {
+                path,
+                schema,
+                middleware: routeMiddleware,
+                handlers,
+            } = route;
+
+            // Get length of route specific middleware
+            const routeMiddlewareLen = routeMiddleware?.length || 0;
+
+            // Check if schema exists
+            const hasSchema = !!schema;
+
+            // Optimize middleware array initialization by pre-allocating size
+            const totalMiddlewareCount =
+                globalMiddlewareLen + (hasSchema ? 1 : 0) + routeMiddlewareLen;
+
+            // Create optimized route handler
+            if (totalMiddlewareCount === 0) {
+                // Ultra-fast path: no middleware
+                routes[path] = (request: BurgerRequest) => {
+                    const handler = handlers[request.method];
+                    return handler ? handler(request) : this.METHOD_NOT_ALLOWED;
+                };
+            } else {
+                // Pre-compute middleware array with known size
+                const middlewares = new Array<Middleware>(totalMiddlewareCount);
+
+                // Initialize index to track the current middleware
+                let index = 0;
+
+                // Copy global middleware (most common case)
+                for (let j = 0; j < globalMiddlewareLen; j++) {
+                    middlewares[index++] = globalMiddleware[j];
+                }
+
+                // Add validation middleware if needed
+                if (hasSchema) {
+                    middlewares[index++] = createValidationMiddleware(schema);
+                }
+
+                // Add route-specific middlewares
+                if (routeMiddleware) {
+                    for (let j = 0; j < routeMiddlewareLen; j++) {
+                        middlewares[index++] = routeMiddleware[j];
+                    }
+                }
+
+                /**
+                 * ================================================
+                 * Pre-compute the required functionality end
+                 * ================================================
+                 */
+
+                // Create handler with middleware
+                routes[path] = (request: BurgerRequest) => {
+                    const handler = handlers[request.method];
+                    if (!handler) return this.METHOD_NOT_ALLOWED;
+                    return this.processMiddleware(
+                        request,
+                        middlewares,
+                        handler
+                    );
+                };
+            }
+        }
+
+        // Add special routes for OpenAPI
+        routes['/openapi.json'] = () =>
+            this.openApiDoc
+                ? Response.json(this.openApiDoc)
+                : this.OPENAPI_ERROR;
+
+        // Add special route for Swagger UI
+        routes['/docs'] = () =>
+            new Response(swaggerHtml, {
+                headers: { 'Content-Type': 'text/html' },
+            });
+
+        return true;
+    }
+
+    /**
+     * Process the middleware and handler
+     * @param request - The request object
+     * @param middlewares - The middleware array
+     * @param handler - The handler function
+     * @returns A promise that resolves to a response
+     */
+    private async processMiddleware(
+        request: BurgerRequest,
+        middlewares: Middleware[],
+        handler: RequestHandler
+    ): Promise<Response> {
+        // Get the length of the middleware array
+        const middlewareLen = middlewares.length;
+
+        // Fast path: single middleware with no after functions
+        if (middlewareLen === 1) {
+            // Get the first middleware
+            const result = await middlewares[0](request);
+            // If the result is a response, return it
+            if (result instanceof Response) {
+                return result;
+            }
+            // If the result is not a function, return the handler
+            if (typeof result !== 'function') {
+                return handler(request);
+            }
+            // If the result is a function, return the result of the handler
+            return result(await handler(request));
+        }
+
+        // Stack to store "after" functions
+        // Regular path with pre-allocated afterStack
+        const afterStack = new Array<(response: Response) => Promise<Response>>(
+            middlewareLen
+        );
+
+        // Initialize the after middleware counter
+        let afterCount = 0;
+
+        // Process "before" logic
+        for (let i = 0; i < middlewareLen; i++) {
+            // Get the current middleware
+            const result = await middlewares[i](request);
+
+            // If the result is a response, return it
+            if (result instanceof Response) {
+                return result; // Short-circuit with a response
+            }
+            // If the result is a function, save it to the afterStack
+            else if (typeof result === 'function') {
+                afterStack[afterCount++] = result;
+            }
+            // If undefined, proceed to next middleware
+        }
+
+        // Get response from handler
+        let response = await handler(request);
+
+        // Fast path: no after functions
+        if (afterCount === 0) {
+            return response;
+        }
+
+        // Fast path: single after function
+        if (afterCount === 1) {
+            return afterStack[0](response);
+        }
+
+        // Process "after" logic in reverse order
+        for (let i = afterCount - 1; i >= 0; i--) {
+            response = await afterStack[i](response);
+        }
+
+        // Return the responseF
+        return response;
     }
 
     /**
@@ -69,154 +339,31 @@ export class Burger {
      * @param cb - An optional cb function to be executed when the server is listening.
      * @returns A Promise that resolves when the server has started listening.
      */
-    async serve(port: number = 4000, cb?: () => void): Promise<void> {
-        // File-based routing mode
-        const routes: { [key: string]: HTMLBundle | RequestHandler } = {};
+    public async serve(port: number = 4000, cb?: () => void): Promise<void> {
+        // Process routes in parallel if possible
+        const [pagesConfigured, apiConfigured] = await Promise.all([
+            this.processPageRoutes(),
+            this.processApiRoutes(),
+        ]);
 
-        // Handle page routes
-        if (this.pageRouter) {
-            // Load Page routes
-            await this.pageRouter.loadPages();
-            // If there are any page routes, add them to the routes object
-            if (this.pageRouter.pages.length > 0) {
-                this.pageRouter.pages.forEach((page) => {
-                    routes[page.path] = page.handler;
-                });
-            }
-        }
+        // Flag to track if any routes were loaded
+        const routesConfigured = pagesConfigured || apiConfigured;
 
-        if (this.apiRouter) {
-            // Load API routes
-            await this.apiRouter.loadRoutes();
-
+        // If routes were configured, start the server
+        if (routesConfigured) {
             // Start the server
             this.server.start(
-                routes,
-                async (req: BurgerRequest, res: BurgerResponse) => {
-                    // Create URL object
-                    const url = new URL(req.url);
-                    const pathname = url.pathname; // Use pre-extracted pathname
-                    const method = req.method.toUpperCase(); // Use pre-extracted method
-
-                    // Check if the request is for /openapi.json
-                    if (pathname === '/openapi.json') {
-                        if (this.apiRouter) {
-                            // Generate OpenAPI document
-                            const doc = generateOpenAPIDocument(
-                                this.apiRouter,
-                                this.options
-                            );
-                            // Return it as JSON
-                            return res.json(doc);
-                        } else {
-                            // Return a descriptive error if router is not available
-                            return res.status(500).json({
-                                error: 'API Router not configured',
-                                message:
-                                    'Please provide an apiDir option when initializing the Burger instance to enable OpenAPI documentation.',
-                            });
-                        }
-                    }
-
-                    // Serve the Swagger UI at /docs
-                    if (pathname === '/docs') {
-                        return res.html(swaggerHtml);
-                    }
-
-                    // Normalize the pathname to ensure it's in the correct format
-                    const normalizedPathname = normalizePath(pathname);
-
-                    // Get the route and params for the current request
-                    const { route, params } = this.apiRouter!.resolve(
-                        normalizedPathname,
-                        method
-                    );
-
-                    if (!route) {
-                        // Return a 404 if no route is found
-                        return res
-                            .status(404)
-                            .json({ error: 'Route not found' });
-                    }
-
-                    // Add params to the request
-                    req.params = params;
-
-                    // Get the handler for the current HTTP method
-
-                    const handler = route.handlers[method];
-                    if (!handler) {
-                        // Return a 405 if no handler is found
-                        return res
-                            .status(405)
-                            .json({ error: 'Method Not Allowed' });
-                    }
-
-                    // Create a new array to store the middleware chain
-                    const middlewaresToRun: Middleware[] = [
-                        // Global middleware first
-                        ...this.globalMiddleware,
-                        // Validation middleware next (if schema exists)
-                        ...(route.schema
-                            ? [createValidationMiddleware(route.schema)]
-                            : []),
-                        // Route-specific middleware last
-                        ...(route.middleware || []),
-                    ];
-
-                    // Create a new index variable to track the current middleware
-                    let index = -1;
-                    // Define the single recursive next function
-                    const next = async (): Promise<Response> => {
-                        index++; // Move to the next middleware/handler
-
-                        if (index < middlewaresToRun.length) {
-                            // If there's middleware left, call it, passing the SAME next function
-                            try {
-                                return await middlewaresToRun[index](
-                                    req,
-                                    res,
-                                    next
-                                );
-                            } catch (middlewareError) {
-                                // If a middleware throws, catch it and let the main error handler deal with it
-                                console.error(
-                                    'Error caught in API middleware chain:',
-                                    middlewareError
-                                );
-                                throw middlewareError; // Re-throw to be caught by the main fetch try/catch
-                            }
-                        } else {
-                            // If no middleware left, call the final API handler
-                            try {
-                                return await handler(req, res);
-                            } catch (handlerError) {
-                                console.error(
-                                    'Error caught in API handler:',
-                                    handlerError
-                                );
-                                throw handlerError; // Re-throw to be caught by the main fetch try/catch
-                            }
-                        }
-                    };
-
-                    // Start the middleware chain execution by calling next() for the first time
-                    return await next();
+                this.routes,
+                async () => {
+                    return this.NOT_FOUND;
                 },
                 port,
                 cb
             );
         } else {
-            // Fallback to default handler if no router is provided
-            this.server.start(
-                undefined,
-                async (_: BurgerRequest, res: BurgerResponse) => {
-                    return res
-                        .status(200)
-                        .json({ message: 'Hello from burger-api!' });
-                },
-                port,
-                cb
+            // If no routes were configured, log an error
+            console.error(
+                'Error: No routes configured! Please provide either apiDir with route.ts files or pageDir with html files when initializing the Burger Class.'
             );
         }
     }

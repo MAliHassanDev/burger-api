@@ -1,6 +1,14 @@
 ## 📣 Release Notes
 
-### Version 0.1.5 (April 2, 2024)
+### Version 0.2.0 (April 26, 2025)
+
+-   ⚡ **Performance & Core Improvements:**
+    -   Optimized framework core and improved middleware handling
+    -   Enhanced OpenAPI documentation and route tracking
+    -   Updated ID preprocessing logic in schema validation
+    -   Improved type definitions across the framework
+
+### Version 0.1.5 (April 2, 2025)
 
 -   🔧 **Dependencies & Build:**
     -   Updated dependencies to latest versions
@@ -18,7 +26,7 @@
     -   Improved route collection and validation in ApiRouter
     -   Enhanced OpenAPI integration with better route handling
 
-### Version 0.1.4 (March 23, 2024)
+### Version 0.1.4 (March 23, 2025)
 
 -   🎨 **Code Quality & Standards:**
 
@@ -33,13 +41,13 @@
     -   Updated request/response handling
     -   Enhanced server initialization process
 
-### Version 0.1.1 (March 15, 2024)
+### Version 0.1.1 (March 15, 2025)
 
 -   🔧 **Middleware Improvements:**
     -   Updated middleware to use BurgerNext type for next function
     -   Enhanced type safety in middleware chain
 
-### Version 0.1.0 (March 10, 2024)
+### Version 0.1.0 (March 10, 2025)
 
 -   🎨 **Static Page Serving:**
     -   Basic support for serving static `.html` files
@@ -47,7 +55,7 @@
     -   Support for route grouping with `(group)` syntax
     -   Support for dynamic route with `[slug]` syntax
 
-### Version 0.0.39 (February 25, 2024)
+### Version 0.0.39 (February 25, 2025)
 
 -   🚀 Initial release with core API features
 -   ⚡ Bun-native HTTP server implementation

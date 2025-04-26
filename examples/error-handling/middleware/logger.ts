@@ -1,16 +1,7 @@
-import type {
-    Middleware,
-    BurgerRequest,
-    BurgerResponse,
-    BurgerNext,
-} from '@src';
+import type { Middleware, BurgerRequest, BurgerNext } from '@src';
 
 // Global middleware example: a simple logger.
-export const globalLogger: Middleware = async (
-    req: BurgerRequest,
-    res: BurgerResponse,
-    next: BurgerNext
-) => {
+export const globalLogger: Middleware = (req: BurgerRequest): BurgerNext => {
     console.log(`[Global Logger] ${req.method} ${req.url}`);
-    return next();
+    return undefined; // Continue to the next middleware
 };

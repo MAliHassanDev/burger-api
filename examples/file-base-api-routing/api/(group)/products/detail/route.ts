@@ -1,7 +1,10 @@
-import type { BurgerRequest, BurgerResponse } from '@src';
+// This is data is outside of the route handler
+// but you can access it in the route handler
+const productId = '123';
 
-export async function GET(req: BurgerRequest, res: BurgerResponse) {
-    return res.json({
+export function GET() {
+    return Response.json({
         message: 'Product Detail',
+        productId,
     });
 }

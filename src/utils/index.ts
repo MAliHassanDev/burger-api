@@ -6,6 +6,7 @@ export {
     HTTP_METHODS,
     compareRoutes,
     getRouteSpecificity,
+    collectRoutes,
 } from '@utils/routing.js';
 
 /**

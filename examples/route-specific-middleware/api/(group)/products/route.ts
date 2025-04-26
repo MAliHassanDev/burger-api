@@ -1,23 +1,26 @@
-import type { BurgerRequest, BurgerResponse, BurgerNext } from '@src';
+import type { BurgerNext, BurgerRequest, Middleware } from '@src';
 
 // Route-specific middleware
-export const middleware = [
-    async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
-        console.log('Product Route-specific middleware executed');
-        return await next();
+export const middleware: Middleware[] = [
+    (req: BurgerRequest): BurgerNext => {
+        console.log(
+            'Product Route-specific middleware executed for request:',
+            req.url
+        );
+        return undefined;
     },
 ];
 
-export async function GET(req: BurgerRequest, res: BurgerResponse) {
+export async function GET(req: BurgerRequest) {
     console.log('Product GET request');
-    const query = req.query;
-    return res.json({
-        query: query,
+    const query = new URL(req.url).searchParams;
+    return Response.json({
+        query: Object.fromEntries(query),
         name: 'John Doe',
     });
 }
 
-export async function POST(req: BurgerRequest, res: BurgerResponse) {
+export async function POST(req: BurgerRequest) {
     const body = await req.json();
-    return res.json(body);
+    return Response.json(body);
 }

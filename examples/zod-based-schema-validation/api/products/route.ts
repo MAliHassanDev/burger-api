@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 // Import types
-import type { BurgerRequest, BurgerResponse, BurgerNext } from '@src';
+import type { BurgerNext, BurgerRequest, Middleware } from '@src';
 
 // Export a schema for both GET and POST requests.
 // For GET, we validate the query parameters.
@@ -24,36 +24,37 @@ export const schema = {
 };
 
 // Route-specific middleware
-export const middleware = [
-    async (req: BurgerRequest, res: BurgerResponse, next: BurgerNext) => {
-        console.log('Product Route-specific middleware executed');
-        return await next();
+export const middleware: Middleware[] = [
+    (req: BurgerRequest): BurgerNext => {
+        console.log(
+            'Product Route-specific middleware executed for request:',
+            req.url
+        );
+        return undefined;
     },
 ];
 
 // GET handler: uses validated query if available.
 export async function GET(
-    req: BurgerRequest<{ query: z.infer<typeof schema.get.query> }>,
-    res: BurgerResponse
+    req: BurgerRequest<{ query: z.infer<typeof schema.get.query> }>
 ) {
     // Get the validated query by zod schema.
-    const query = req.validated.query;
+    // const query = new URL(req.url).searchParams;
 
     // Return response with the validated query.
-    return res.json({
-        query: query,
+    return Response.json({
+        query: req.validated?.query,
         name: 'John Doe',
     });
 }
 
 // POST handler: uses validated body if available.
 export async function POST(
-    req: BurgerRequest<{ body: z.infer<typeof schema.post.body> }>,
-    res: BurgerResponse
+    req: BurgerRequest<{ body: z.infer<typeof schema.post.body> }>
 ) {
     // Get the validated body by zod schema.
-    const body = req.validated.body;
+    const body = req.validated?.body;
 
     // Return response with the validated body.
-    return res.json(body);
+    return Response.json(body);
 }

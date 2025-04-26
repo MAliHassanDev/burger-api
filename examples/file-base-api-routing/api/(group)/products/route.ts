@@ -1,14 +1,14 @@
-import type { BurgerRequest, BurgerResponse } from '@src';
+import type { BurgerRequest } from '@src';
 
-export async function GET(req: BurgerRequest, res: BurgerResponse) {
-    const query = req.query;
-    return res.json({
-        query: query,
+export function GET(req: BurgerRequest) {
+    const query = new URL(req.url).searchParams;
+    return Response.json({
+        query: Object.fromEntries(query),
         name: 'John Doe',
     });
 }
 
-export async function POST(req: BurgerRequest, res: BurgerResponse) {
+export async function POST(req: BurgerRequest) {
     const body = await req.json();
-    return res.json(body);
+    return Response.json(body);
 }
