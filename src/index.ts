@@ -377,7 +377,6 @@ export type {
     ServerOptions,
     RequestHandler,
     BurgerRequest,
-    BurgerResponse,
     BurgerNext,
     Middleware,
     openapi,

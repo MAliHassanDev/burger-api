@@ -1,6 +1,6 @@
 {
   "name": "burger-api",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "Isfhan Ahmed",
   "type": "module",
   "module": "dist/src/index.js",
@@ -58,7 +58,14 @@
     "contemporary-backend",
     "fast-javascript",
     "bun-js-framework",
-    "bun-backend"
+    "bun-backend",
+    "bun-api-framework",
+    "pakistan-backend",
+    "pakistan-api-framework",
+    "pakistan-api-server",
+    "pakistan-backend-framework",
+    "pakistan-bunjs-framework",
+    "pakistan-javascript-framework"
   ],
   "license": "MIT",
   "repository": {
