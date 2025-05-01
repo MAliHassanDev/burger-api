@@ -1,5 +1,12 @@
 ## 📣 Release Notes
 
+### Version 0.2.3 (May 2, 2025)
+
+-   ⚡ **Core Improvements:**
+
+    -   Removed custom request/response classes for simpler API
+    -   Enhanced type safety and error handling
+
 ### Version 0.2.0 (April 26, 2025)
 
 -   ⚡ **Performance & Core Improvements:**
@@ -11,11 +18,13 @@
 ### Version 0.1.5 (April 2, 2025)
 
 -   🔧 **Dependencies & Build:**
+
     -   Updated dependencies to latest versions
     -   Enhanced build process with tsc-alias
     -   Improved TypeScript configuration
 
 -   📦 **Package Updates:**
+
     -   Updated zod to version ^3.24.2
     -   Updated zod-to-json-schema to version ^3.24.5
     -   Updated TypeScript peer dependency to ^5.7.3

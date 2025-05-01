@@ -59,6 +59,12 @@ burger-api is built to offer a robust developer experience through:
 
 ## 📣 Changelog
 
+### Latest Version: 0.2.3 (May 2, 2025)
+
+-   ⚡ **Core Improvements:**
+    -   Removed custom request/response classes for simpler API
+    -   Enhanced type safety and error handling
+
 ### Latest Version: 0.2.0 (April 26, 2025)
 
 -   ⚡ **Performance & Core Improvements:**
